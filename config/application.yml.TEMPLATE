@@ -1,0 +1,14 @@
+## application specific settings
+type: initial_test_value_HI
+
+## spring-boot settings
+management:
+  security:
+    enabled: false
+endpoints:
+  enabled: true
+  
+## logging for log4j2
+logging:
+  level:
+    edu: DEBUG
