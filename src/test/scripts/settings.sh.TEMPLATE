@@ -1,0 +1,18 @@
+# Settings for the SPE curl test scripts
+# A filled in settings file should never be checked into source control.
+
+#### API settings
+IBM_CLIENT_ID=
+KEY=${IBM_CLIENT_ID}
+SECRET=
+SCOPE=
+GRANT_TYPE=
+URL_PREFIX=
+
+### Query settings
+COURSEID=
+ASSIGNMENTTITLE=
+# format for time is: '2017-04-01 18:00:00'
+GRADEAFTERTIME=
+#end
+
