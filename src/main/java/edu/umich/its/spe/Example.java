@@ -5,19 +5,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+//import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.*;
+//import org.springframework.stereotype.*;
 import org.springframework.web.bind.annotation.*;
 
-import edu.umich.its.spe.Config;
+import edu.umich.its.spe.EsbConfig;
 
 @ComponentScan
 @RestController
 @Configuration
 @EnableAutoConfiguration
-@EnableConfigurationProperties(Config.class)
+//@EnableConfigurationProperties(EsbConfig.class)
 
 
 // TODO: implement multiple input files.
@@ -42,20 +42,21 @@ public class Example {
 
 	static final Logger log = LoggerFactory.getLogger(Example.class);
 
-	private Config config;
+	private EsbConfig config;
 
 	@Autowired
-	public void MyConfig(Config config) {
-		log.debug("in MyConfig");
+	public void MyConfig(EsbConfig config) {
+		log.error("in MyConfig");
 		this.config = config;
+		log.error("print myConfig [{}]",this.config);
 	}
 
-	// TODO: get the generic ones works (e.g. endpoints.enabled)
+	// TODO: get the generic one to work (e.g. endpoints.enabled)
 
 	@RequestMapping("/")
 	String home() {
 		log.debug("home()");
-		return "Hello World!" + " config.type: " + config.getType();
+		return "Hello World!" + " GRANT_TYPE: " + config.getGRANTTYPE();
 	}
 
 	public static void main(String[] args) throws Exception {
