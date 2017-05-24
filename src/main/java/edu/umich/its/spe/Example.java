@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import edu.umich.its.spe.EsbConfig;
 
-@ComponentScan
-@RestController
-@Configuration
-@EnableAutoConfiguration
+//@ComponentScan
+//@RestController
+//@Configuration
+//@EnableAutoConfiguration
 //@EnableConfigurationProperties(EsbConfig.class)
 
 

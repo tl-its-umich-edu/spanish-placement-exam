@@ -1,8 +1,14 @@
 package edu.umich.its.spe;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import org.apache.commons.io.FileUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /* 
  * This will read or write a UTF-8 string identified by a specific path.  
@@ -32,11 +38,17 @@ import java.nio.file.Paths;
  */
 public class PersistString {
 
+//	./src/main/java/edu/umich/its/cpm/Migration.java:3:import org.slf4j.Logger;
+//	./src/main/java/edu/umich/its/cpm/Migration.java:4:import org.slf4j.LoggerFactory;
+	//./src/main/java/edu/umich/its/cpm/Migration.java:26:	
+	private static final Logger log = LoggerFactory.getLogger(PersistString.class);
+	
 	String path = "";
 
 	public PersistString(String path) throws PersistStringException {
 		// TODO: path needs to be a complete path to avoid ambiguity.
-		System.out.println("PS constructor string: "+path);
+		//log.error("PS constructor string: "+path);
+		log.info("PS constructor string: "+path);
 		this.path = path;
 		if (! "/".equals(path.substring(0,1))) {
 			throw new PersistStringException("Path provided must be an absolute path.");
@@ -46,9 +58,16 @@ public class PersistString {
 
 	// Read the string for this path.
 	public String readString() throws PersistStringException {
+		log.info("readString: ");
+		String usePath = this.path+"/persisted.txt";
+		try {
+			String contents = FileUtils.readFileToString(new File(usePath), "UTF-8");
+			log.info("returned string: "+contents);
+			return contents;
+		} catch (IOException e) {
+			throw new PersistStringException("can not read string",e);
+		}
 
-		throw new PersistStringException("implement read string.");
-		//throw new PersistStringException("problem reading string at: "+this.path);
 	}
 
 	/* Replace the current data for this path by the 
@@ -58,14 +77,13 @@ public class PersistString {
 	public void writeString(String contents) throws PersistStringException {
 		// TODO: make sure directory exists
 		//throw new PersistStringException("problem writing string at: "+this.path);
+		log.info("writeString: [{}]",contents);
 		try {
 			Files.write(Paths.get(this.path+"/persisted.txt"), contents.getBytes());
 			return;
 		} catch (RuntimeException |  IOException e) {
-			// TODO Auto-generated catch block
 			throw new PersistStringException("Wrapped Exception in PersistString",e);
 		}
-		throw new PersistStringException("implement write string.");
 	}
 
 	//Files.write(Paths.get("./duke.txt"), msg.getBytes());
