@@ -16,12 +16,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import edu.umich.its.spe.PersistString;
+import edu.umich.its.spe.PersistStringImpl;
 import edu.umich.its.spe.PersistStringException;
 
-public class PersistStringTest {
+public class PersistStringImplTest {
 	//private static Log log = LogFactory.getLog(PersistStringTest.class);
-	static final Logger log = LoggerFactory.getLogger(PersistStringTest.class);
+	static final Logger log = LoggerFactory.getLogger(PersistStringImplTest.class);
 	
 	/*******************************/
 	/* setup */
@@ -32,7 +32,7 @@ public class PersistStringTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ps = new PersistString(tempFolder.getRoot().toString());
+		ps = new PersistStringImpl(tempFolder.getRoot().toString());
 	}
 
 	@After
@@ -48,13 +48,13 @@ public class PersistStringTest {
 
 	public void testAbsolutePath() throws PersistStringException {
 		log.error("temp folder: A "+tempFolder.getRoot());
-		new PersistString("/here/is/a/reasonable/path");
+		new PersistStringImpl("/here/is/a/reasonable/path");
 	}
 
 	@Test(expected=PersistStringException.class)
 	public void testRelativePath() throws PersistStringException {
 		log.error("temp folder: B "+tempFolder.getRoot());
-		new PersistString("here/is/an/unreasonable/path");
+		new PersistStringImpl("here/is/an/unreasonable/path");
 	}
 	
 	/**********************************/
@@ -64,7 +64,7 @@ public class PersistStringTest {
 	
 	@Test(expected=PersistStringException.class)
 	public void testWriteStringBadPath() throws PersistStringException {
-		ps = new PersistString("/tmp/test/here");
+		ps = new PersistStringImpl("/tmp/test/here");
 		ps.writeString("test string: "+timeStamp());
 	}
 	

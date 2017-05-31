@@ -82,7 +82,7 @@ public class SPEMasterProcessGradeTest {
 
 			JSONObject grade = jAD.getJSONObject(i);
 			assertThat("proper type",grade,instanceOf(JSONObject.class));
-			assertThat("Score exists and is string",grade.getString("Score"),instanceOf(String.class));
+			assertThat("Score exists and is string",JSONObject.valueToString(grade.get("Score")),instanceOf(String.class));
 			assertThat("Unique_Name exists and is string",grade.getString("Unique_Name"),instanceOf(String.class));
 		}
 	}
