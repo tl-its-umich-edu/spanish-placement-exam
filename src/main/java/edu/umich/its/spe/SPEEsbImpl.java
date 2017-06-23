@@ -7,8 +7,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import edu.umich.ctools.esb.utils.WAPI;
@@ -25,6 +27,8 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 public class SPEEsbImpl implements SPEEsb {
 
+	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
+
 	static final Logger M_log = LoggerFactory.getLogger(SPEEsbImpl.class);
 
 	// Keys of properties that must be provided for our ESB queries.
@@ -36,7 +40,7 @@ public class SPEEsbImpl implements SPEEsb {
 
 		List<String> keys = new ArrayList<>(defaultKeys);
 
-//		// add gradedaftertime as a property for testing and defaulting.
+		//		// add gradedaftertime as a property for testing and defaulting.
 		keys.add("gradedaftertime");
 		keys.add("COURSEID");
 		keys.add("ASSIGNMENTTITLE");
@@ -45,7 +49,7 @@ public class SPEEsbImpl implements SPEEsb {
 	}
 
 	// Go get the SPE grades
-	
+
 	public WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws SPEEsbException {
 		HashMap<String,String> headers = new HashMap<String,String>();
 
@@ -53,7 +57,7 @@ public class SPEEsbImpl implements SPEEsb {
 		headers.put("x-ibm-client-id",value.get("x-ibm-client-id"));
 
 		StringBuilder url = new StringBuilder();
-		
+
 		try {
 			url.append(value.get("apiPrefix"))
 			.append("/Unizin/data/CourseId/")
@@ -71,17 +75,17 @@ public class SPEEsbImpl implements SPEEsb {
 		WAPI wapi = new WAPI(value);
 
 		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
-	
+
 		if (wrappedResult.getStatus() != 200 && wrappedResult.getStatus() != 404) {
 			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "+wrappedResult.getMessage();
 			M_log.error(msg,wrappedResult.toString());
 			throw(new SPEEsbException(msg));
 		}
-		
+
 		M_log.debug(wrappedResult.toJson());
 		return wrappedResult;
 	}
-	
+
 	/************************** put grades in MPathways *********************/
 
 	// Add to the properties list the properties that put grade requests will require.
@@ -96,10 +100,12 @@ public class SPEEsbImpl implements SPEEsb {
 	}
 
 	// Put a single grade in MPathways
-	
+
 	@Override
 	public WAPIResultWrapper putGradeViaESB(HashMap<String, String> value) {
 		HashMap<String,String> headers = new HashMap<String,String>();
+
+		M_log.info("speproperties for esb: "+value.toString());
 
 		headers.put("x-ibm-client-id",value.get("x-ibm-client-id"));
 
@@ -115,8 +121,19 @@ public class SPEEsbImpl implements SPEEsb {
 		M_log.debug("putGrades: headers: ["+headers.toString()+"]");
 
 		WAPI wapi = new WAPI(value);
+		WAPIResultWrapper wrappedResult = null;
 
-		WAPIResultWrapper wrappedResult = wapi.doPutRequest(url.toString(),headers);
+		// For testing allow skipping update of MPathways
+		/// check for not true.
+		if (!"true".equals(value.get("skipGradeUpdate").toLowerCase())) {
+			wrappedResult = wapi.doPutRequest(url.toString(),headers);
+		}
+		else {
+			String msg = "{error: " + SKIP_GRADE_UPDATE + " for "+value.get("UNIQNAME")+"}";
+			M_log.error("skip msg: "+msg);
+			wrappedResult = new WAPIResultWrapper(WAPI.HTTP_UNKNOWN_ERROR,SKIP_GRADE_UPDATE,
+					new JSONObject(msg));
+		}
 
 		M_log.info(wrappedResult.toJson());
 
@@ -126,14 +143,14 @@ public class SPEEsbImpl implements SPEEsb {
 	/************************** Check that can access ESB successfully *********************/
 	// All this does is renew the current token, but that is sufficient to check that the 
 	// ESB can be reached and do something requiring authorization.
-	
+
 	@Override
 	public boolean verify(HashMap<String, String> value) {
-		
+
 		WAPI wapi = new WAPI(value);
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
-		
+
 		if (tokenRenewal.getStatus() == 200) {
 			success = true;
 		} else {
