@@ -10,61 +10,74 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.stereotype.Component;
-
 /* 
- * This will read or write a UTF-8 string identified by a specific path.  
- * The contents of the string are undefined and have no specific limit.
+ * This will read or write a UTF-8 string identified by a specific resource path.
+ * The contents of the string are restricted and have no specific limit.
  * This is useful for implementing tiny bits of persistent storage when the
  * need for persistent storage is real but small.
  * 
- * The initial implementation will only work on a single server.  Anticipated volume
- * is low enough to make that feasible.
+ * The initial implementation requires disk storage and will only work on a single server.  
+ * Anticipated volume for SPE is low enough to make that feasible.
  */
 
 /*
- * For initial implementation the path will be a disk directory path.
- * The path should be complete path.
+ * For initial implementation the path will be an absolute disk directory path.
+ * Only the directory path is required.  The internal file name is supplied automatically.
  * 
- * In the future there could be a better solution.  E.g. a protected string server 
- * with authn and authz.
+ * Future implementations may be more powerful when more power is required.
  * 
- */
-
-/*
- * Possible extensions:
+ * Possible extensions are:
  * - authn, authz
  * - version control - keep old version, allow restoring old versions.
- * - sanity checking for simultanious access.
+ * - sanity checking for simultaneous access.
+ * - compatibility with multiple servers.
  * - atomic read / write.
  */
-//@Component
-// Don't use @Component since this needs a constructor argument
+
+// Spring: Don't use @Component for autowiring since this need a constructor argument.
+// See SPEConfiguration for that implementation.
+
 public class PersistStringImpl implements PersistString {
 
 	private static final Logger log = LoggerFactory.getLogger(PersistStringImpl.class);
-	
-	String path = "";
 
+	String path = "";
+	String persistant_file_name = "persisted.txt";
+	String full_file_name = "";
+	
+	// Path passed in must be an absolute disk path to avoid problems finding the location.
 	public PersistStringImpl(String path) throws PersistStringException {
-		// TODO: path needs to be a complete path to avoid ambiguity.
-		//log.error("PS constructor string: "+path);
+
 		log.info("PS constructor string: "+path);
 		this.path = path;
+		this.full_file_name = path+persistant_file_name;
+		
+		// Make sure the file can be used and has at least a trivial value.
+		
 		if (! "/".equals(path.substring(0,1))) {
 			throw new PersistStringException("Path provided must be an absolute path.");
 		}
-		//verify that path exists
+
+		if (Files.notExists(Paths.get(path))) {
+			throw new PersistStringException("Path does not exist: ["+path+"]");
+		}
+		
+		if (!Files.isWritable(Paths.get(path))) {
+			throw new PersistStringException("Path is not writeable.");
+		}
+		
+		if (Files.notExists(Paths.get(full_file_name))) {
+			writeString("");
+		}
 	}
 
 	// Read the string for this path.
 	@Override
 	public String readString() throws PersistStringException {
-		log.info("readString: ");
-		String usePath = this.path+"/persisted.txt";
+		log.debug("readString: ");
 		try {
-			String contents = FileUtils.readFileToString(new File(usePath), "UTF-8");
-			log.info("returned string: "+contents);
+			String contents = FileUtils.readFileToString(new File(full_file_name), "UTF-8");
+			log.debug("returned string: "+contents);
 			return contents;
 		} catch (IOException e) {
 			throw new PersistStringException("can not read string",e);
@@ -72,23 +85,29 @@ public class PersistStringImpl implements PersistString {
 
 	}
 
-	/* Replace the current data for this path by the 
+	/* 
+	 * Replace the current data for this path by the 
 	 * contents of this new string.
 	 */
 
 	@Override
 	public void writeString(String contents) throws PersistStringException {
-		// TODO: make sure directory exists
-		//throw new PersistStringException("problem writing string at: "+this.path);
-		log.info("writeString: [{}]",contents);
+		log.debug("writeString: [{}]",contents);
 		try {
-			Files.write(Paths.get(this.path+"/persisted.txt"), contents.getBytes());
+			Files.write(Paths.get(full_file_name), contents.getBytes());
 			return;
 		} catch (RuntimeException |  IOException e) {
 			throw new PersistStringException("Wrapped Exception in PersistString",e);
 		}
 	}
 
-	//Files.write(Paths.get("./duke.txt"), msg.getBytes());
-	
+	/*
+	 * Convenience function to empty the stored value.
+	 * 
+	 */
+	@Override
+	public void zapString() throws PersistStringException {
+		writeString("");		
+	}
+
 }

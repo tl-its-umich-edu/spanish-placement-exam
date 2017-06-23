@@ -22,13 +22,11 @@ public class SPEMasterProcessGradeTest {
 	static final Logger log = LoggerFactory.getLogger(SPEMasterProcessGradeTest.class);
 
 	String esbAssignmentJSON = "{\"Meta\":{\"Message\":\"COMPLETED\",\"httpStatus\":200},\"Result\":{\"AssignmentInfo\":{\"AssignmentData\":[{\"Score\":1721.5,\"Published_Score\":1721.5,\"User_Id\":137734728828958800,\"Finished_At\":\"2017-04-26T14:38:46.809-04:00\",\"Unique_Name\":\"studentc\"},{\"Score\":1320,\"Published_Score\":1320,\"User_Id\":-296951127543716860,\"Finished_At\":\"2017-04-26T14:10:54.188-04:00\",\"Unique_Name\":\"studentd\"},{\"Score\":107.2,\"Published_Score\":107.2,\"User_Id\":80295732322489020,\"Finished_At\":\"2017-04-27T15:34:24.638-04:00\",\"Unique_Name\":\"otchiu\"},{\"Score\":1520.5,\"Published_Score\":1520.5,\"User_Id\":271815845968802940,\"Finished_At\":\"2017-04-26T15:03:53.929-04:00\",\"Unique_Name\":\"studenta\"},{\"Score\":0,\"Published_Score\":0,\"User_Id\":247378583477711140,\"Finished_At\":\"2017-04-26T11:52:42.184-04:00\",\"Unique_Name\":\"crouch\"},{\"Score\":0,\"Published_Score\":0,\"User_Id\":-527815610591606100,\"Finished_At\":\"2017-04-28T16:02:20.856-04:00\",\"Unique_Name\":\"2bf01bfed59660f85cee2dc7fddbd9e8d9fb1b21\"},{\"Score\":1613.3,\"Published_Score\":1613.3,\"User_Id\":392571521045807040,\"Finished_At\":\"2017-04-25T15:42:26.797-04:00\",\"Unique_Name\":\"studentb\"},{\"Score\":1220.5,\"Published_Score\":1220.5,\"User_Id\":173106618602968540,\"Finished_At\":\"2017-04-27T14:38:28.160-04:00\",\"Unique_Name\":\"zewang\"}]}}}";
+	String esbAssignmentResultJSON = "{\"AssignmentInfo\":{\"AssignmentData\":[{\"Score\":1721.5,\"Published_Score\":1721.5,\"User_Id\":137734728828958800,\"Finished_At\":\"2017-04-26T14:38:46.809-04:00\",\"Unique_Name\":\"studentc\"},{\"Score\":1320,\"Published_Score\":1320,\"User_Id\":-296951127543716860,\"Finished_At\":\"2017-04-26T14:10:54.188-04:00\",\"Unique_Name\":\"studentd\"},{\"Score\":107.2,\"Published_Score\":107.2,\"User_Id\":80295732322489020,\"Finished_At\":\"2017-04-27T15:34:24.638-04:00\",\"Unique_Name\":\"otchiu\"},{\"Score\":1520.5,\"Published_Score\":1520.5,\"User_Id\":271815845968802940,\"Finished_At\":\"2017-04-26T15:03:53.929-04:00\",\"Unique_Name\":\"studenta\"},{\"Score\":0,\"Published_Score\":0,\"User_Id\":247378583477711140,\"Finished_At\":\"2017-04-26T11:52:42.184-04:00\",\"Unique_Name\":\"crouch\"},{\"Score\":0,\"Published_Score\":0,\"User_Id\":-527815610591606100,\"Finished_At\":\"2017-04-28T16:02:20.856-04:00\",\"Unique_Name\":\"2bf01bfed59660f85cee2dc7fddbd9e8d9fb1b21\"},{\"Score\":1613.3,\"Published_Score\":1613.3,\"User_Id\":392571521045807040,\"Finished_At\":\"2017-04-25T15:42:26.797-04:00\",\"Unique_Name\":\"studentb\"},{\"Score\":1220.5,\"Published_Score\":1220.5,\"User_Id\":173106618602968540,\"Finished_At\":\"2017-04-27T14:38:28.160-04:00\",\"Unique_Name\":\"zewang\"}]}}";
 	String assignmentListJSON = "[{\"Score\":1721.5,\"Published_Score\":1721.5,\"User_Id\":137734728828958800,\"Finished_At\":\"2017-04-26T14:38:46.809-04:00\",\"Unique_Name\":\"studentc\"},{\"Score\":1320,\"Published_Score\":1320,\"User_Id\":-296951127543716860,\"Finished_At\":\"2017-04-26T14:10:54.188-04:00\",\"Unique_Name\":\"studentd\"},{\"Score\":107.2,\"Published_Score\":107.2,\"User_Id\":80295732322489020,\"Finished_At\":\"2017-04-27T15:34:24.638-04:00\",\"Unique_Name\":\"otchiu\"},{\"Score\":1520.5,\"Published_Score\":1520.5,\"User_Id\":271815845968802940,\"Finished_At\":\"2017-04-26T15:03:53.929-04:00\",\"Unique_Name\":\"studenta\"},{\"Score\":0,\"Published_Score\":0,\"User_Id\":247378583477711140,\"Finished_At\":\"2017-04-26T11:52:42.184-04:00\",\"Unique_Name\":\"crouch\"},{\"Score\":0,\"Published_Score\":0,\"User_Id\":-527815610591606100,\"Finished_At\":\"2017-04-28T16:02:20.856-04:00\",\"Unique_Name\":\"2bf01bfed59660f85cee2dc7fddbd9e8d9fb1b21\"},{\"Score\":1613.3,\"Published_Score\":1613.3,\"User_Id\":392571521045807040,\"Finished_At\":\"2017-04-25T15:42:26.797-04:00\",\"Unique_Name\":\"studentb\"},{\"Score\":1220.5,\"Published_Score\":1220.5,\"User_Id\":173106618602968540,\"Finished_At\":\"2017-04-27T14:38:28.160-04:00\",\"Unique_Name\":\"zewang\"}]";
 
 	String assignmentJSON_A = "{\"Score\":1721.5,\"Published_Score\":1721.5,\"User_Id\":137734728828958800,\"Finished_At\":\"2017-04-26T14:38:46.809-04:00\",\"Unique_Name\":\"studentc\"}";
 	String assignmentJSON_B = "{\"Score\":1320,\"Published_Score\":1320,\"User_Id\":-296951127543716860,\"Finished_At\":\"2017-04-26T14:10:54.188-04:00\",\"Unique_Name\":\"studentd\"}";
-
-	// TODO: use fancy matchers and lists of valid score / user entries to check 
-	// that get valid entries from the list of grades.  Currently doesn't compile.
 
 	SPEMaster spe = null;
 
@@ -43,7 +41,7 @@ public class SPEMasterProcessGradeTest {
 
 	@Test
 	public void testConvertSPEGradesFromDataWarehouseJSON() throws JSONException{
-		ArrayList<HashMap<String,String>> gradedFromDW = spe.convertSPEGradesFromDataWarehouseJSON(esbAssignmentJSON);
+		ArrayList<HashMap<String,String>> gradedFromDW = spe.convertSPEGradesFromDataWarehouseJSON(esbAssignmentResultJSON);
 
 		assertEquals("correct number of assignments",8,gradedFromDW.size());
 		
@@ -90,18 +88,6 @@ public class SPEMasterProcessGradeTest {
 	@Ignore
 	@Test
 	public void testVerify() {
-		fail("Not yet implemented");
-	}
-
-	@Ignore
-	@Test
-	public void testGetSPEGrades() {
-		fail("Not yet implemented");
-	}
-
-	@Ignore
-	@Test
-	public void testPutSPEGrade() {
 		fail("Not yet implemented");
 	}
 

@@ -20,7 +20,6 @@ import edu.umich.its.spe.PersistStringImpl;
 import edu.umich.its.spe.PersistStringException;
 
 public class PersistStringImplTest {
-	//private static Log log = LogFactory.getLog(PersistStringTest.class);
 	static final Logger log = LoggerFactory.getLogger(PersistStringImplTest.class);
 	
 	/*******************************/
@@ -46,16 +45,23 @@ public class PersistStringImplTest {
 	/********************************/
 	/* constructor tests */
 
+	@Test
 	public void testAbsolutePath() throws PersistStringException {
-		log.error("temp folder: A "+tempFolder.getRoot());
-		new PersistStringImpl("/here/is/a/reasonable/path");
+		String tmpFolder = tempFolder.getRoot().toString();
+		new PersistStringImpl(tmpFolder);
 	}
-
+	
 	@Test(expected=PersistStringException.class)
 	public void testRelativePath() throws PersistStringException {
-		log.error("temp folder: B "+tempFolder.getRoot());
 		new PersistStringImpl("here/is/an/unreasonable/path");
 	}
+	
+	@Test(expected=PersistStringException.class)
+	public void testAbsolutePathBadFolder() throws PersistStringException {
+		String tmpFolder = tempFolder.getRoot().toString();
+		new PersistStringImpl(tmpFolder+".XXX");
+	}
+
 	
 	/**********************************/
 	/* IO tests */
@@ -73,11 +79,11 @@ public class PersistStringImplTest {
 		ps.writeString(null);
 	}
 	
-	@Test(expected=PersistStringException.class)
-	public void testReadMissingStringFAIL() throws PersistStringException {
-			String s = ps.readString();
-			assertNull("no string written",s);
-	}
+//	@Test(expected=PersistStringException.class)
+//	public void testReadMissingStringFAIL() throws PersistStringException {
+//			String s = ps.readString();
+//			assertNull("no string r",s);
+//	}
 	
 	
 	/********* pass */
@@ -85,6 +91,8 @@ public class PersistStringImplTest {
 	@Test
 	public void testWriteStringGoodPath() throws PersistStringException {
 		ps.writeString("test string: "+timeStamp());
+		String s = ps.readString();
+		assertNotNull("wrote string",s);
 	}
 	
 	@Test
