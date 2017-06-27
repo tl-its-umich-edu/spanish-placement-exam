@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 import edu.umich.ctools.esb.utils.WAPI;
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
-/* 
+/*
  * Implement esb calls to get / put grade information.
  * The information required is passed in a hashmap.  Some values come from the
  * properties files.
@@ -45,7 +46,7 @@ public class SPEEsbImpl implements SPEEsb {
 	}
 
 	// Go get the SPE grades
-	
+
 	public WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws SPEEsbException {
 		HashMap<String,String> headers = new HashMap<String,String>();
 
@@ -53,7 +54,7 @@ public class SPEEsbImpl implements SPEEsb {
 		headers.put("x-ibm-client-id",value.get("x-ibm-client-id"));
 
 		StringBuilder url = new StringBuilder();
-		
+
 		try {
 			url.append(value.get("apiPrefix"))
 			.append("/Unizin/data/CourseId/")
@@ -61,6 +62,7 @@ public class SPEEsbImpl implements SPEEsb {
 			.append("/AssignmentTitle/")
 			.append(URLEncoder.encode(value.get("ASSIGNMENTTITLE"),"UTF-8"));
 		} catch (UnsupportedEncodingException e) {
+			M_log.error("encoding exception in getGrades"+e);
 			throw(new SPEEsbException("encoding exception in getGrades",e));
 		}
 
@@ -71,17 +73,17 @@ public class SPEEsbImpl implements SPEEsb {
 		WAPI wapi = new WAPI(value);
 
 		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
-	
-		if (wrappedResult.getStatus() != 200 && wrappedResult.getStatus() != 404) {
+
+		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
 			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "+wrappedResult.getMessage();
 			M_log.error(msg,wrappedResult.toString());
 			throw(new SPEEsbException(msg));
 		}
-		
+
 		M_log.debug(wrappedResult.toJson());
 		return wrappedResult;
 	}
-	
+
 	/************************** put grades in MPathways *********************/
 
 	// Add to the properties list the properties that put grade requests will require.
@@ -96,7 +98,7 @@ public class SPEEsbImpl implements SPEEsb {
 	}
 
 	// Put a single grade in MPathways
-	
+
 	@Override
 	public WAPIResultWrapper putGradeViaESB(HashMap<String, String> value) {
 		HashMap<String,String> headers = new HashMap<String,String>();
@@ -124,17 +126,17 @@ public class SPEEsbImpl implements SPEEsb {
 	}
 
 	/************************** Check that can access ESB successfully *********************/
-	// All this does is renew the current token, but that is sufficient to check that the 
+	// All this does is renew the current token, but that is sufficient to check that the
 	// ESB can be reached and do something requiring authorization.
-	
+
 	@Override
-	public boolean verify(HashMap<String, String> value) {
-		
+	public boolean verifyESBConnection(HashMap<String, String> value) {
+
 		WAPI wapi = new WAPI(value);
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
-		
-		if (tokenRenewal.getStatus() == 200) {
+
+		if (tokenRenewal.getStatus() == HttpStatus.SC_OK) {
 			success = true;
 		} else {
 			M_log.error("token renewal failed: status: {} message: {}",tokenRenewal.getStatus(),tokenRenewal.getMessage());

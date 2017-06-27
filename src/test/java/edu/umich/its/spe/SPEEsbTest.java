@@ -8,6 +8,7 @@ package edu.umich.its.spe;
 
 import static org.junit.Assert.*;
 
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,7 +58,7 @@ public class SPEEsbTest {
 
 //	@Autowired
 	SPEEsb speesb;
-	
+
 
 	@Autowired
 	private SPEProperties speproperties;
@@ -73,7 +74,7 @@ public class SPEEsbTest {
 		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(value);
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
-		Boolean callOk = wrappedResult.getStatus() == 200 || wrappedResult.getStatus() == 404;
+		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;
 		assertEquals("successful call",callOk, true);
 	}
 
@@ -87,7 +88,7 @@ public class SPEEsbTest {
 		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
-		assertEquals("successful call",200,wrappedResult.getStatus());
+		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());
 	}
 
 	@Test
@@ -97,7 +98,7 @@ public class SPEEsbTest {
 		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
 
 		//WAPIResultWrapper wrappedResult = speesb.verify(value);
-		Boolean verify_result = speesb.verify(value);
+		Boolean verify_result = speesb.verifyESBConnection(value);
 		M_log.debug("update: {}",verify_result);
 		assertTrue("successful verify",verify_result);
 	}

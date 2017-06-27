@@ -21,6 +21,6 @@ public interface SPEEsb {
 	WAPIResultWrapper putGradeViaESB(HashMap<String, String> value);
 	
 	// check that can access the ESB.
-	boolean verify(HashMap<String, String> value);
+	boolean verifyESBConnection(HashMap<String, String> value);
 
 }

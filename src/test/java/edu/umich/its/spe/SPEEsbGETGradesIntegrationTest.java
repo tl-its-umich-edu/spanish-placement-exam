@@ -4,6 +4,7 @@ package edu.umich.its.spe;
 
 import static org.junit.Assert.*;
 
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,11 +36,11 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 @ComponentScan
 
 public class SPEEsbGETGradesIntegrationTest {
-	
+
 	// Apply a global timeout to all tests.  Comment out when debugging a test.
     //@Rule
     //public Timeout globalTimeout = Timeout.seconds(10);
-	
+
 	@Before
 	public void setUp() throws Exception {
 		speesb = new SPEEsbImpl();
@@ -48,14 +49,14 @@ public class SPEEsbGETGradesIntegrationTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	SPEEsb speesb;
-	
+
 	@Autowired
 	SPEProperties speproperties;
 
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbGETGradesIntegrationTest.class);
-	
+
 	@Test
 	public void checkPropertiesFile() throws IOException {
 		Properties props = TestingUtils.readTestProperties(speproperties);
@@ -71,7 +72,7 @@ public class SPEEsbGETGradesIntegrationTest {
 		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(value);
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
-		Boolean callOk = wrappedResult.getStatus() == 200 || wrappedResult.getStatus() == 404;
+		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;
 		assertEquals("successful call",callOk, true);
 	}
 
