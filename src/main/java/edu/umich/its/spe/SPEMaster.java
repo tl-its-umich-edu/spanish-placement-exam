@@ -51,9 +51,12 @@ public class SPEMaster {
 	@Autowired
 	private SPEProperties speproperties;
 
+	@Autowired
+	private SPESummary spesummary;
+	
 	// If no other timestamp is specified use the current time.
 	private LocalDateTime startingTime = LocalDateTime.now();
-	
+
 	public SPEMaster() {
 		super();
 		M_log.info("SPEMaster: this: "+this.toString());
@@ -143,6 +146,8 @@ public class SPEMaster {
 	/************ Close down processing, create summary ************/
 	public void closeUpShop() {
 		// TODO: implement task shutdown.
+		// Just print summary.
+		System.out.println(spesummary.toString());
 		M_log.error("Implement close up shop");
 	}
 
@@ -189,6 +194,7 @@ public class SPEMaster {
 
 	public String getSPEGrades(String gradedAfterTime) throws SPEEsbException {
 
+		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
 		HashMap<String, String> values = setupGetGradesCall(gradedAfterTime);
 
 		WAPIResultWrapper grades = speesb.getGradesViaESB(values);
@@ -315,12 +321,14 @@ public class SPEMaster {
 				gradesAdded++;
 			}
 		}
+
 		M_log.info("adding grades: attempted: {} successful: {}",gradesAttempted,gradesAdded);
 	}
 	
 	// Send a single grade to MPathways.
 	public boolean putSPEGrade(HashMap<?, ?> user) {
 		HashMap<String,String> value = setupPutGradeCall(user);
+		boolean success = false;
 
 		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
 
@@ -328,11 +336,14 @@ public class SPEMaster {
 
 		if (wrappedResult.getStatus() == 200) {
 			logPutGrade(wrappedResult);
-			return true;
+			//return true;
+			success = true;
 		}
 
+		spesummary.appendUser(value.get("UNIQNAME"), success);
 		M_log.error("error updating grade: "+wrappedResult.toJson());
-		return false;
+		//return false;
+		return success;
 	}
 
 
@@ -347,21 +358,92 @@ public class SPEMaster {
 	 */
 	
 	// Format an internal timestamp into the expected string.
-	protected static String formatPersistTimestamp(LocalDateTime ts) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	public static String formatPersistTimestamp(LocalDateTime ts) {
+		return formatTimestamp(ts);
+	}
+	
+	public static String formatTimestamp(LocalDateTime ts) {
+		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		String s = ts.format(formatter);
 		return s;
 	}
 	
-	public String readLastGradeTransferTime() throws PersistStringException {
+	public String readLastGradeTransferTime() throws PersistStringException, SPEEsbException {
 		String lastTransferTime = persistString.readString();
-		// If there is no time right now then write a default one.
-		if (lastTransferTime == null || lastTransferTime.isEmpty()) {
-			M_log.info("default gradedaftertime: {}",speproperties.getGetgrades().get("gradedaftertime"));
-			writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
-			return readLastGradeTransferTime();
-		}
+
+		lastTransferTime = ensureLastGradeTransferTime(lastTransferTime);
+		writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
+		spesummary.setStoredGradesLastRetrieved(lastTransferTime);
 		return lastTransferTime;
+	}
+	
+	// Compute a reasonable last grade transfer time.
+	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistStringException, SPEEsbException {
+		
+		String useTransferTime;
+		
+		// if specify a particular override time use that.  This is a separate property to make it easy to 
+		// override from command line.
+		useTransferTime = speproperties.getGetgrades().get("gradedaftertimeoverride");
+		if (useTransferTime != null && useTransferTime.length() > 0) {
+			return useTransferTime;
+		}
+		
+		// if a time was saved use that.
+		//useTransferTime = readLastGradeTransferTime();
+		if (useTransferTime != null && useTransferTime.length() > 0) {
+			return useTransferTime;
+		}
+		
+		// if a time was saved use that.
+		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
+		if (useTransferTime != null && useTransferTime.length() > 0) {
+			return useTransferTime;
+		}
+		
+		M_log.error("Can not determine last graded time");
+		throw  new SPEEsbException("Can not determine last graded time");
+		
+	}
+	
+	// Compute a reasonable last grade transfer time.
+	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistStringException, SPEEsbException {
+
+		String useTransferTime;
+		
+		// if specify specific override time use that.  This is a separate property to make it easy to 
+		// override from command line.
+		String gradeDateOverride = speproperties.getGetgrades().get("gradedateoverride");
+		if (gradeDateOverride != null && gradeDateOverride.length() > 0) {
+			return gradeDateOverride;
+		}
+		
+		// if a time was saved use that.
+		//useTransferTime = readLastGradeTransferTime();
+		useTransferTime = persistString.readString();
+		if (useTransferTime != null && useTransferTime.length() > 0) {
+			return useTransferTime;
+		}
+		
+		// if a time was saved use that.
+		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
+		if (useTransferTime != null && useTransferTime.length() > 0) {
+			return useTransferTime;
+		}
+		
+		M_log.error("Can not determine last graded time");
+		throw  new SPEEsbException("Can not determine last graded time");
+		
+
+//		if (lastTransferTime == null || lastTransferTime.isEmpty()) {
+//			//M_log.info("default gradedaftertime: {}",speproperties.getGetgrades().get("gradedaftertime"));
+//			M_log.info("persisted gradedaftertime was empty");
+//			
+//		//	writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
+//		//	return readLastGradeTransferTime();
+//			lastTransferTime = readLastGradeTransferTime();
+//		}
+		//return lastTransferTime;
 	}
 
 	// If no time is specified used the current script starting time.
@@ -371,6 +453,7 @@ public class SPEMaster {
 
 	// Save a specific time.
 	public String writeLastGradeTransferTime(String timestamp) throws PersistStringException {
+		spesummary.setUpdatedGradesLastRetrieved(timestamp);
 		persistString.writeString(timestamp);
 		return timestamp;
 	}

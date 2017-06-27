@@ -44,7 +44,7 @@ public class SPEMasterProcessGradeTest {
 		ArrayList<HashMap<String,String>> gradedFromDW = spe.convertSPEGradesFromDataWarehouseJSON(esbAssignmentResultJSON);
 
 		assertEquals("correct number of assignments",8,gradedFromDW.size());
-		
+
 		for(HashMap<String, String> e : gradedFromDW) {
 			assertThat("proper type",e,instanceOf(HashMap.class));
 			assertThat("Score exists and is string",e.get("Score"),instanceOf(String.class));
