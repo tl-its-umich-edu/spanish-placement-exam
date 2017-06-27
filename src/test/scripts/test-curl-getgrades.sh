@@ -16,6 +16,8 @@ source ./settings.sh
 # This will hold current access token obtained by getAccessToken.
 ACCESS_TOKEN=
 
+set -x
+
 function getAccessToken {
 
     # ask for a token
@@ -35,7 +37,7 @@ function getSPEGrades {
     curl --request GET \
          --url "${URL_PREFIX}/Unizin/data/CourseId/${COURSEID}/AssignmentTitle/${ASSIGNMENTTITLE}" \
          --header 'accept: application/json' \
-         --header "authorization: Bearer ${ACCESS_TOKEN}" \
+         --header "Authorization: Bearer ${ACCESS_TOKEN}" \
          --header "gradedaftertime: ${GRADEAFTERTIME}" \
          --header "x-ibm-client-id: ${IBM_CLIENT_ID}"
 }
