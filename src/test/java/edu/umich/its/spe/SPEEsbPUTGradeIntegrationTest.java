@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +33,7 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 @ComponentScan
 
 public class SPEEsbPUTGradeIntegrationTest {
-	
+
 	@Before
 	public void setUp() throws Exception {
 		speesb = new SPEEsbImpl();
@@ -41,21 +42,21 @@ public class SPEEsbPUTGradeIntegrationTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	SPEEsb speesb;
-	
+
 	@Autowired
 	SPEProperties speproperties;
 
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbPUTGradeIntegrationTest.class);
-	
+
 	@Test
 	public void checkPropertiesFile() throws IOException {
 		Properties props = TestingUtils.readTestProperties(speproperties);
 		assertNotNull(props);
 	}
-	
-	
+
+
 	@Test
 	// fails when run from SPEEsbTest.java
 	public void putGradesTestSPEEsbTest() throws IOException {
@@ -66,9 +67,9 @@ public class SPEEsbPUTGradeIntegrationTest {
 		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
-		assertEquals("successful call",200,wrappedResult.getStatus());
+		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());
 	}
-	
+
 	@Test
 	public void putGradesTest() throws IOException {
 
@@ -78,7 +79,7 @@ public class SPEEsbPUTGradeIntegrationTest {
 		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
-		assertEquals("successful call",200,wrappedResult.getStatus());
+		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());
 	}
 
 }

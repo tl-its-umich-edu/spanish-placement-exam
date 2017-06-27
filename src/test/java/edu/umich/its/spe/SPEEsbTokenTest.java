@@ -68,7 +68,7 @@ public class SPEEsbTokenTest {
 		List<String> keys = speesb.setupPutGradePropertyValues();
 		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
 
-		Boolean verify_result = speesb.verify(value);
+		Boolean verify_result = speesb.verifyESBConnection(value);
 		M_log.debug("update: {}",verify_result);
 		assertTrue("successful verify",verify_result);
 	}

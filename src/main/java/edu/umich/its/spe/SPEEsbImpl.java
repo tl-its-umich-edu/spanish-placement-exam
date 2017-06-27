@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
+
+import org.apache.http.HttpStatus;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +74,8 @@ public class SPEEsbImpl implements SPEEsb {
 			url.append(value.get("apiPrefix")).append("/Unizin/data/CourseId/").append(value.get("COURSEID"))
 					.append("/AssignmentTitle/").append(URLEncoder.encode(value.get("ASSIGNMENTTITLE"), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			throw (new SPEEsbException("encoding exception in getGrades", e));
+			M_log.error("encoding exception in getGrades"+e);
+			throw(new SPEEsbException("encoding exception in getGrades",e));
 		}
 
 		M_log.debug("getGrades: value:[" + value.toString() + "]");
@@ -80,13 +84,12 @@ public class SPEEsbImpl implements SPEEsb {
 
 		WAPI wapi = new WAPI(value);
 
-		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(), headers);
+		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
 
-		if (wrappedResult.getStatus() != 200 && wrappedResult.getStatus() != 404) {
-			String msg = "error in esb call to get grades: status: " + wrappedResult.getStatus() + " message: "
-					+ wrappedResult.getMessage();
-			M_log.error(msg, wrappedResult.toString());
-			throw (new SPEEsbException(msg));
+		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
+			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "+wrappedResult.getMessage();
+			M_log.error(msg,wrappedResult.toString());
+			throw(new SPEEsbException(msg));
 		}
 
 		M_log.debug(wrappedResult.toJson());
@@ -143,21 +146,19 @@ public class SPEEsbImpl implements SPEEsb {
 		return wrappedResult;
 	}
 
-	/**************************
-	 * Check that can access ESB successfully
-	 *********************/
-	// All this does is renew the current token, but that is sufficient to check
-	// that the
+
+	/************************** Check that can access ESB successfully *********************/
+	// All this does is renew the current token, but that is sufficient to check that the
 	// ESB can be reached and do something requiring authorization.
 
 	@Override
-	public boolean verify(HashMap<String, String> value) {
+	public boolean verifyESBConnection(HashMap<String, String> value) {
 
 		WAPI wapi = new WAPI(value);
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
 
-		if (tokenRenewal.getStatus() == 200) {
+		if (tokenRenewal.getStatus() == HttpStatus.SC_OK) {
 			success = true;
 		} else {
 			M_log.error("token renewal failed: status: {} message: {}", tokenRenewal.getStatus(),

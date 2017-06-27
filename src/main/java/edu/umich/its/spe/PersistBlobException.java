@@ -1,6 +1,6 @@
 package edu.umich.its.spe;
 
-public class PersistStringException extends Exception {
+public class PersistBlobException extends Exception {
 
 	/*
 	 * Exception for un-recoverable errors in PersistString 
@@ -8,11 +8,11 @@ public class PersistStringException extends Exception {
 	
 	private static final long serialVersionUID = -2232997115239589804L;
 
-	PersistStringException(String message) {
+	PersistBlobException(String message) {
 		super(message);
 	}
 
-	public PersistStringException(String message, Throwable e) {
+	public PersistBlobException(String message, Throwable e) {
 		super(message,e);
 	}
 

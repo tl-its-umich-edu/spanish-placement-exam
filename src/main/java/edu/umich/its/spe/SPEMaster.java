@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.http.HttpStatus;
+
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 import org.json.JSONArray;
@@ -22,7 +24,7 @@ import org.json.JSONException;
 
 /*
  * Master class to run the Spanish Placement Exam script.
- * 
+ *
  * See junit test files for sample data.
  */
 
@@ -46,14 +48,14 @@ public class SPEMaster {
 	private SPEEsb speesb;
 
 	@Autowired
-	private PersistString persistString;
+	private PersistBlob persistString;
 
 	@Autowired
 	private SPEProperties speproperties;
 
 	@Autowired
 	private SPESummary spesummary;
-	
+
 	// If no other timestamp is specified use the current time.
 	private LocalDateTime startingTime = LocalDateTime.now();
 
@@ -62,19 +64,19 @@ public class SPEMaster {
 		M_log.info("SPEMaster: this: "+this.toString());
 	}
 
-	// Set global timeouts for EBS calls 
+	// Set global timeouts for EBS calls
 	protected void setUnirestGlobalValues() {
-		
+
 		M_log.info("setupUnirestGlobalValues");
 		unirest = speproperties.getUnirest();
 		M_log.info("unirest properties: {}",unirest);
-		
+
 		// Setup values for request timeouts.
 		long ct = longFromStringWithDefault(unirest.get("connectionTimeout"), 10000l);
 		long st = longFromStringWithDefault(unirest.get("socketTimeout"), 10000l);
-		
+
 		M_log.info("unirest timeouts: connectionTimeout: {} socketTimeout: {}",ct,st);
-		
+
 		Unirest.setTimeouts(ct,st);
 	}
 
@@ -85,55 +87,55 @@ public class SPEMaster {
 		return longValue;
 	}
 
-	/*********************** Orchestrate the script. *****************/ 
-	
-	/* 
+	/*********************** Orchestrate the script. *****************/
+
+	/*
 	 * - configuration is read and injected by spring
 	 * - get value gradeAfterTime from persist string (default if necessary).
 	 * - get grades.
 	 * - translate to format for updates.
 	 * - send to MPathways.
-	 * 
+	 *
 	 */
-	
+
 	/* Organize the task and handle errors */
-	
-	public void orchestrator () throws PersistStringException, SPEEsbException {
-	
+
+	public void orchestrator () throws PersistBlobException, SPEEsbException {
+
 		M_log.info("Start SPE orchestrator");
-	
+
 		setUnirestGlobalValues();
-		
+
 		// sanity check by renewing token to ensure we can connect to the database.
-		
+
 		if (!verifyESB()) {
-			M_log.error("Unable to connect to esb"); 
+			M_log.error("Unable to connect to esb");
 			throw new SPEEsbException("Unable to connect to ESB");
 		}
-		
+
 		//// Get the relevant grades.
 		String lastUpdateTime = readLastGradeTransferTime();
 		M_log.error("fake lastUpdateTime");
 		lastUpdateTime = "2017-03-08 15:38:21";
 		M_log.info("lastUpdateTime: {}",lastUpdateTime);
 		String assignmentsFromDW;
-	
+
 		try {
 			assignmentsFromDW = getSPEGrades(lastUpdateTime);
-	
-			//// Extract grades from JSON the grades for insertion	
-	
+
+			//// Extract grades from JSON the grades for insertion
+
 			ArrayList<HashMap<String,String>> SPEgradeMaps = null;
 			try {
 				SPEgradeMaps = convertSPEGradesFromDataWarehouseJSON(assignmentsFromDW);
 			} catch (JSONException e) {
 				M_log.error("exception in converting grades: "+e);
 			}
-	
+
 			//// Insert the grades.
 			M_log.info("Grade count since {} is {}.",lastUpdateTime,SPEgradeMaps.size());
 			putSPEGrades(SPEgradeMaps);
-	
+
 		} catch (SPEEsbException e1) {
 			M_log.error("Exception processing SPE grades:",e1);
 		}
@@ -153,7 +155,7 @@ public class SPEMaster {
 
 	/********* esb verify **********/
 	// Run sanity check to make sure can talk to ESB and get data.
-	
+
 	/*
 	 * Setup the hash of values needed for the call to verify ESB connection.
 	 */
@@ -168,7 +170,7 @@ public class SPEMaster {
 		// TODO: implement verify by renewing access token.
 		M_log.error("verify is not yet used by SPEMaster");
 		HashMap<String,String> value = setupESBVerifyCall();
-		return speesb.verify(value);	
+		return speesb.verifyESBConnection(value);
 	}
 
 	/*************** get grades via ESB **************/
@@ -188,9 +190,9 @@ public class SPEMaster {
 	/*
 	 * Get grades as JSON string.  Only grades after the gradeAfterTime
 	 * timestamp will be returned. An empty result is reasonable.
-	 * The format of the time stamp is: 2017-04-01 18:00:00.  
+	 * The format of the time stamp is: 2017-04-01 18:00:00.
 	 * TODO: timestamp default value?
-	 */ 
+	 */
 
 	public String getSPEGrades(String gradedAfterTime) throws SPEEsbException {
 
@@ -199,7 +201,7 @@ public class SPEMaster {
 
 		WAPIResultWrapper grades = speesb.getGradesViaESB(values);
 		// check for possibility of no new grades.
-		if (grades.getStatus() == 404) {
+		if (grades.getStatus() == HttpStatus.SC_NOT_FOUND) {
 			return "[]";
 		}
 
@@ -211,17 +213,17 @@ public class SPEMaster {
 	//{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"
 
 	/*********** format assignments from the data warehouse ********/
-	
+
 	// After getting the JSON from the data warehouse format the SPE grades.
 	protected ArrayList<HashMap<String,String>> convertSPEGradesFromDataWarehouseJSON(String assignmentJSON) {
-	
+
 		M_log.debug("cSGFDWJ: assignmentJSON: {}",assignmentJSON);
 		// if nothing in it then return an empty list.
 		if (assignmentJSON == null || assignmentJSON.length() <=2) {
 			ArrayList<HashMap<String,String>> emptyArrayList = new ArrayList<HashMap<String,String>>();
 			return emptyArrayList;
 		}
-	
+
 		JSONArray assignments = parseCanvasAssignmentJSON(assignmentJSON);
 		ArrayList<HashMap<String,String>> gradeMapList = convertAssignmentsToGradeMaps(assignments);
 		M_log.debug("cSGFDWJ: gradeMaplist: {}",gradeMapList);
@@ -231,14 +233,14 @@ public class SPEMaster {
 	// convert the list of DataWarehouse assignments to a list of grade maps for MPathways.
 	protected ArrayList<HashMap<String, String>> convertAssignmentsToGradeMaps(JSONArray canvasAssignments) {
 		ArrayList<HashMap<String,String>> gradeMapList = new ArrayList<HashMap<String, String>>();
-	
+
 		// JSONArray is not iterable so can't use the nice "for each" syntax.
 		for(int i = 0; i<canvasAssignments.length(); i++) {
 			JSONObject assignment = canvasAssignments.getJSONObject(i);
 			HashMap<String, String> grademap = convertAssignmentToGradeMap(assignment);
 			gradeMapList.add(grademap);
 		}
-	
+
 		return gradeMapList;
 	}
 
@@ -255,26 +257,26 @@ public class SPEMaster {
 	static protected JSONArray parseCanvasAssignmentJSON(String gradeJSON) throws JSONException {
 		JSONObject jo = new JSONObject(gradeJSON);
 		JSONObject jAI = jo.getJSONObject("AssignmentInfo");
-	
+
 		// Get the data as a JSON array.
 		JSONArray jAD = jAI.optJSONArray("AssignmentData");
-	
+
 		// If there is a single grade it may appear as a single object, so deal with that.
 		if (jAD == null) {
 			jAD = new JSONArray();
 			jAD.put(jAI.getJSONObject("AssignmentData"));
 		}
-	
+
 		return jAD;
 	}
 
-	
+
 	/***************** put grades ************/
-	
+
 	/*
 	 * Setup the hash of values needed for the call to get grades.
 	 */
-	
+
 	protected HashMap<String, String> setupPutGradeCall(HashMap<?, ?> user) {
 		M_log.debug("spe properties: "+speproperties);
 		HashMap<String,String> value = new HashMap<String,String>();
@@ -291,9 +293,9 @@ public class SPEMaster {
 	}
 
 	//{"Meta":{"Message":"COMPLETED","httpStatus":200},"Result":{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"},"@schemaLocation":"http://mais.he.umich.edu/schemas/putPlcExamScoreResponse.v1 http://csqa9ib.dsc.umich.edu/PSIGW/PeopleSoftServiceListeningConnector/putPlcExamScoreResponse.v1.xsd"}}}
-	
+
 	//{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"
-	
+
 	// Print out user for updated grade.
 	static protected void logPutGrade(WAPIResultWrapper putGrade)  {
 		try {
@@ -308,7 +310,7 @@ public class SPEMaster {
 	}
 
 	/********* put in the grades **********/
-	
+
 	// Send a list of grades to MPathways.
 	public void putSPEGrades(ArrayList<HashMap<String, String>> SPEgradeMaps) {
 		int gradesAdded = 0;
@@ -324,7 +326,7 @@ public class SPEMaster {
 
 		M_log.info("adding grades: attempted: {} successful: {}",gradesAttempted,gradesAdded);
 	}
-	
+
 	// Send a single grade to MPathways.
 	public boolean putSPEGrade(HashMap<?, ?> user) {
 		HashMap<String,String> value = setupPutGradeCall(user);
@@ -334,7 +336,7 @@ public class SPEMaster {
 
 		M_log.debug("update: {}",wrappedResult.toJson());
 
-		if (wrappedResult.getStatus() == 200) {
+		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
 			//return true;
 			success = true;
@@ -350,95 +352,98 @@ public class SPEMaster {
 
 	/***************** manage the timestamp data with PersistString ***********/
 	/*
-	 * Use PersistString class to get a string with a timestamp representing the 
+	 * Use PersistString class to get a string with a timestamp representing the
 	 * last time the script updated the grades.
-	 * 
+	 *
 	 * If the value isn't available or is corrupt use a default value.  We'll be careful
 	 * but won't panic about only submitting grades once.
 	 */
-	
+
 	// Format an internal timestamp into the expected string.
 	public static String formatPersistTimestamp(LocalDateTime ts) {
 		return formatTimestamp(ts);
 	}
-	
+
 	public static String formatTimestamp(LocalDateTime ts) {
 		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		String s = ts.format(formatter);
 		return s;
 	}
-	
-	public String readLastGradeTransferTime() throws PersistStringException, SPEEsbException {
-		String lastTransferTime = persistString.readString();
 
-		lastTransferTime = ensureLastGradeTransferTime(lastTransferTime);
-		writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
-		spesummary.setStoredGradesLastRetrieved(lastTransferTime);
+
+	public String readLastGradeTransferTime() throws PersistBlobException {
+		String lastTransferTime = persistString.readBlob();
+		// If there is no time right now then write a default one.
+		if (lastTransferTime == null || lastTransferTime.isEmpty()) {
+			M_log.info("default gradedaftertime: {}",speproperties.getGetgrades().get("gradedaftertime"));
+			writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
+			return readLastGradeTransferTime();
+		}
 		return lastTransferTime;
 	}
-	
+
 	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistStringException, SPEEsbException {
-		
+	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistBlobException, SPEEsbException {
+
 		String useTransferTime;
-		
-		// if specify a particular override time use that.  This is a separate property to make it easy to 
+
+		// if specify a particular override time use that.  This is a separate property to make it easy to
 		// override from command line.
 		useTransferTime = speproperties.getGetgrades().get("gradedaftertimeoverride");
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
-		
+
 		// if a time was saved use that.
 		//useTransferTime = readLastGradeTransferTime();
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
-		
+
 		// if a time was saved use that.
 		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
-		
+
 		M_log.error("Can not determine last graded time");
 		throw  new SPEEsbException("Can not determine last graded time");
-		
+
 	}
-	
+
 	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistStringException, SPEEsbException {
+	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistBlobException, SPEEsbException {
 
 		String useTransferTime;
-		
-		// if specify specific override time use that.  This is a separate property to make it easy to 
+
+		// if specify specific override time use that.  This is a separate property to make it easy to
 		// override from command line.
 		String gradeDateOverride = speproperties.getGetgrades().get("gradedateoverride");
 		if (gradeDateOverride != null && gradeDateOverride.length() > 0) {
 			return gradeDateOverride;
 		}
-		
+
 		// if a time was saved use that.
 		//useTransferTime = readLastGradeTransferTime();
-		useTransferTime = persistString.readString();
+		useTransferTime = persistString.readBlob();
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
-		
+
 		// if a time was saved use that.
 		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
-		
+
 		M_log.error("Can not determine last graded time");
 		throw  new SPEEsbException("Can not determine last graded time");
-		
+
 
 //		if (lastTransferTime == null || lastTransferTime.isEmpty()) {
 //			//M_log.info("default gradedaftertime: {}",speproperties.getGetgrades().get("gradedaftertime"));
 //			M_log.info("persisted gradedaftertime was empty");
-//			
+//
 //		//	writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
 //		//	return readLastGradeTransferTime();
 //			lastTransferTime = readLastGradeTransferTime();
@@ -447,14 +452,14 @@ public class SPEMaster {
 	}
 
 	// If no time is specified used the current script starting time.
-	public String writeLastGradeTransferTime() throws PersistStringException {
+	public String writeLastGradeTransferTime() throws PersistBlobException {
 		return writeLastGradeTransferTime(formatPersistTimestamp(startingTime));
 	}
 
 	// Save a specific time.
-	public String writeLastGradeTransferTime(String timestamp) throws PersistStringException {
+	public String writeLastGradeTransferTime(String timestamp) throws PersistBlobException {
 		spesummary.setUpdatedGradesLastRetrieved(timestamp);
-		persistString.writeString(timestamp);
+		persistString.writeBlob(timestamp);
 		return timestamp;
 	}
 

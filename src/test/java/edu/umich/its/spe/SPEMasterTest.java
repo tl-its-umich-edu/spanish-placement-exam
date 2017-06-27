@@ -67,7 +67,7 @@ public class SPEMasterTest {
 
 	// check that override is used of there is no value for gradedaftertime
 	@Test
-	public void testEnsureLastGradeTransferTimeOverride() throws PersistStringException, SPEEsbException {
+	public void testEnsureLastGradeTransferTimeOverride() throws PersistBlobException, SPEEsbException {
 		speproperties.getGetgrades().put("gradedaftertimeoverride","DKJ");
 		String defaultTime = spe.ensureLastGradeTransferTime(null);
 		M_log.error("defaultTime: [{}]",defaultTime);
@@ -78,7 +78,7 @@ public class SPEMasterTest {
 
 	// verify that use gradedaftertime from gradedaftertime property if it is set and override property is empty.
 	@Test
-	public void testEnsureLastGradeTransferTimeDefault() throws PersistStringException, SPEEsbException {
+	public void testEnsureLastGradeTransferTimeDefault() throws PersistBlobException, SPEEsbException {
 		speproperties.getGetgrades().put("gradedaftertime","GAT");
 		String defaultTime = spe.ensureLastGradeTransferTime(null);
 		M_log.error("defaultTime: [{}]",defaultTime);
@@ -89,7 +89,7 @@ public class SPEMasterTest {
 
 	// verify that use gradedaftertime from override if properties for override is set and gradedaftertime is empty.
 	@Test
-	public void testZZZEnsureLastGradeTransferTimegradedaftertimeOverrideOnly() throws PersistStringException, SPEEsbException {
+	public void testZZZEnsureLastGradeTransferTimegradedaftertimeOverrideOnly() throws PersistBlobException, SPEEsbException {
 		speproperties.getGetgrades().put("gradedaftertimeoverride","OVERRIDE");
 		String defaultTime = spe.ensureLastGradeTransferTime(null);
 		M_log.error("defaultTime: [{}]",defaultTime);
@@ -100,7 +100,7 @@ public class SPEMasterTest {
 
 	// verify that set gradedaftertime from override if properties for both override and gradedaftertime are set.
 	@Test
-	public void testEnsureLastGradeTransferTimegradedaftertimeOverride() throws PersistStringException, SPEEsbException {
+	public void testEnsureLastGradeTransferTimegradedaftertimeOverride() throws PersistBlobException, SPEEsbException {
 		speproperties.getGetgrades().put("gradedaftertime","GAT");
 		speproperties.getGetgrades().put("gradedaftertimeoverride","OVERRIDE");
 		String defaultTime = spe.ensureLastGradeTransferTime(null);
@@ -111,7 +111,7 @@ public class SPEMasterTest {
 
 	// verify get exception if no gradedaftertime property is set.
 	@Test(expected = SPEEsbException.class)
-	public void testEnsureLastGradeTransferTimeNoPropertySet() throws PersistStringException, SPEEsbException {
+	public void testEnsureLastGradeTransferTimeNoPropertySet() throws PersistBlobException, SPEEsbException {
 		String defaultTime = spe.ensureLastGradeTransferTime(null);
 		M_log.error("defaultTime: [{}]",defaultTime);
 		assertNotNull("default time",defaultTime);
