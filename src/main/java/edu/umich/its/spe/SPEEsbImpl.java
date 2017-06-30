@@ -37,6 +37,20 @@ public class SPEEsbImpl implements SPEEsb {
 	@Autowired
 	SPESummary spesummary;
 
+	// No arg constructor for use in SpringApp.
+
+	public SPEEsbImpl() {
+		super();
+	}
+
+	// Constructor that allows injecting summary object.  That can
+	// be useful in testing when don't want to automatically start application.
+
+	public SPEEsbImpl(SPESummary spesummary) {
+		super();
+		this.spesummary = spesummary;
+	}
+
 	// Keys of properties that must be provided for our ESB queries.
 	static final List<String> defaultKeys = (List<String>) Arrays.asList("tokenServer", "apiPrefix", "key", "secret",
 			"scope", "x-ibm-client-id");
@@ -66,13 +80,18 @@ public class SPEEsbImpl implements SPEEsb {
 		headers.put("gradedAfterTime", value.get("gradedaftertime"));
 		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
 
+		M_log.debug("spesummary: {}",spesummary);
 		spesummary.setCourseId(value.get("COURSEID"));
 
 		StringBuilder url = new StringBuilder();
 
 		try {
-			url.append(value.get("apiPrefix")).append("/Unizin/data/CourseId/").append(value.get("COURSEID"))
-					.append("/AssignmentTitle/").append(URLEncoder.encode(value.get("ASSIGNMENTTITLE"), "UTF-8"));
+			url.append(value.get("apiPrefix"))
+			.append("/Unizin/data/CourseId/")
+			.append(value.get("COURSEID"))
+			.append("/AssignmentTitle/")
+			.append(URLEncoder.encode(value.get("ASSIGNMENTTITLE"),"UTF-8"));
+
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
 			throw(new SPEEsbException("encoding exception in getGrades",e));
@@ -121,8 +140,11 @@ public class SPEEsbImpl implements SPEEsb {
 		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
 
 		StringBuilder url = new StringBuilder();
-		url.append(value.get("apiPrefix")).append("/Unizin/UniqName/").append(value.get("UNIQNAME")).append("/Score/")
-				.append(value.get("SCORE"));
+		url.append(value.get("apiPrefix"))
+		.append("/Unizin/UniqName/")
+		.append(value.get("UNIQNAME"))
+		.append("/Score/")
+		.append(value.get("SCORE"));
 
 		M_log.debug("putGrades: value:[" + value.toString() + "]");
 		M_log.debug("putGrades: request url: [" + url.toString() + "]");
@@ -133,6 +155,7 @@ public class SPEEsbImpl implements SPEEsb {
 
 		// For testing allow skipping update of MPathways
 		/// check for not true.
+		M_log.debug("skipiGradeUpdate: {}",value.get("skipGradeUpdate"));
 		if (value.get("skipGradeUpdate") == null || !"true".equals(value.get("skipGradeUpdate").toLowerCase())) {
 			wrappedResult = wapi.doPutRequest(url.toString(), headers);
 		} else {

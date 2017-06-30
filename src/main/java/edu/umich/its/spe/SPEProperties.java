@@ -16,7 +16,7 @@ import lombok.Data;
  * This only applies to one level of naming.  This isn't configured to provide nested property maps.
  */
 
-// Spring: These annotations make the properties class visible to Spring for filling and injection. 
+// Spring: These annotations make the properties class visible to Spring for filling and injection.
 @Component
 @Configuration
 @ConfigurationProperties
@@ -32,4 +32,5 @@ public class SPEProperties {
 	private HashMap<String,String> getgrades;
 	private HashMap<String,String> putgrades;
 	private HashMap<String,String> unirest;
+	private HashMap<String,String> test;
 }

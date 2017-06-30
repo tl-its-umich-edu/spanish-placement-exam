@@ -36,7 +36,7 @@ public class SPEEsbPUTGradeIntegrationTest {
 
 	@Before
 	public void setUp() throws Exception {
-		speesb = new SPEEsbImpl();
+		speesb = new SPEEsbImpl(spesummary);
 	}
 
 	@After
@@ -47,6 +47,9 @@ public class SPEEsbPUTGradeIntegrationTest {
 
 	@Autowired
 	SPEProperties speproperties;
+
+	@Autowired
+	SPESummary spesummary;
 
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbPUTGradeIntegrationTest.class);
 
