@@ -28,7 +28,7 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 // Spring: this makes the class discoverable for autowiring.
 @Component
 
-public class SPEEsbImpl implements SPEEsb {
+public class SPEEsbImpl implements GradeIO {
 
 	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
 
@@ -74,7 +74,7 @@ public class SPEEsbImpl implements SPEEsb {
 
 	// Go get the SPE grades
 
-	public WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws SPEEsbException {
+	public WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws GradeIOException {
 		HashMap<String, String> headers = new HashMap<String, String>();
 
 		headers.put("gradedAfterTime", value.get("gradedaftertime"));
@@ -94,7 +94,7 @@ public class SPEEsbImpl implements SPEEsb {
 
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
-			throw(new SPEEsbException("encoding exception in getGrades",e));
+			throw(new GradeIOException("encoding exception in getGrades",e));
 		}
 
 		M_log.debug("getGrades: value:[" + value.toString() + "]");
@@ -108,7 +108,7 @@ public class SPEEsbImpl implements SPEEsb {
 		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
 			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "+wrappedResult.getMessage();
 			M_log.error(msg,wrappedResult.toString());
-			throw(new SPEEsbException(msg));
+			throw(new GradeIOException(msg));
 		}
 
 		M_log.debug(wrappedResult.toJson());

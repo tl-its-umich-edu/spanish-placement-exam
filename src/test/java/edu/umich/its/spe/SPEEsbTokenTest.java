@@ -57,7 +57,7 @@ public class SPEEsbTokenTest {
 	}
 
 	@Autowired
-	SPEEsb speesb;
+	GradeIO speesb;
 
 	@Autowired
 	private SPEProperties speproperties;

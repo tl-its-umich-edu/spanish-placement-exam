@@ -56,7 +56,7 @@ public class SPEEsbTest {
 	}
 
 //	@Autowired
-	SPEEsb speesb;
+	GradeIO speesb;
 
 
 	@Autowired
@@ -68,7 +68,7 @@ public class SPEEsbTest {
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbTest.class);
 
 	@Test
-	public void getGradesTest() throws IOException, SPEEsbException {
+	public void getGradesTest() throws IOException, GradeIOException {
 
 		List<String> keys = speesb.setupGetGradePropertyValues();
 		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);

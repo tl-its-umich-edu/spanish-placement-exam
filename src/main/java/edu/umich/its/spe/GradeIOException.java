@@ -1,6 +1,6 @@
 package edu.umich.its.spe;
 
-public class SPEEsbException extends Exception {
+public class GradeIOException extends Exception {
 
 	/*
 	 * Exception for non-recoverable errors in ESB access. 
@@ -8,11 +8,11 @@ public class SPEEsbException extends Exception {
 	
 	private static final long serialVersionUID = -2232997115239589804L;
 
-	SPEEsbException(String message) {
+	GradeIOException(String message) {
 		super(message);
 	}
 
-	public SPEEsbException(String message, Throwable e) {
+	public GradeIOException(String message, Throwable e) {
 		super(message,e);
 	}
 

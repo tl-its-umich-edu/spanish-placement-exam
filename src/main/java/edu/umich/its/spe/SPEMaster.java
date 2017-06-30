@@ -45,7 +45,7 @@ public class SPEMaster {
 
 	// Let Spring inject the properties, the esb service, and the persistString implementation.
 	@Autowired
-	private SPEEsb speesb;
+	private GradeIO gradeio;
 
 	@Autowired
 	private PersistBlob persistString;
@@ -100,7 +100,7 @@ public class SPEMaster {
 
 	/* Organize the task and handle errors */
 
-	public void orchestrator () throws PersistBlobException, SPEEsbException {
+	public void orchestrator () throws PersistBlobException, GradeIOException {
 
 		M_log.info("Start SPE orchestrator");
 
@@ -110,7 +110,7 @@ public class SPEMaster {
 
 		if (!verifyESB()) {
 			M_log.error("Unable to connect to esb");
-			throw new SPEEsbException("Unable to connect to ESB");
+			throw new GradeIOException("Unable to connect to ESB");
 		}
 
 		//// Get the relevant grades.
@@ -136,7 +136,7 @@ public class SPEMaster {
 			M_log.info("Grade count since {} is {}.",lastUpdateTime,SPEgradeMaps.size());
 			putSPEGrades(SPEgradeMaps);
 
-		} catch (SPEEsbException e1) {
+		} catch (GradeIOException e1) {
 			M_log.error("Exception processing SPE grades:",e1);
 		}
 		finally {
@@ -170,7 +170,7 @@ public class SPEMaster {
 		// TODO: implement verify by renewing access token.
 		M_log.error("verify is not yet used by SPEMaster");
 		HashMap<String,String> value = setupESBVerifyCall();
-		return speesb.verifyESBConnection(value);
+		return gradeio.verifyESBConnection(value);
 	}
 
 	/*************** get grades via ESB **************/
@@ -194,12 +194,12 @@ public class SPEMaster {
 	 * TODO: timestamp default value?
 	 */
 
-	public String getSPEGrades(String gradedAfterTime) throws SPEEsbException {
+	public String getSPEGrades(String gradedAfterTime) throws GradeIOException {
 
 		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
 		HashMap<String, String> values = setupGetGradesCall(gradedAfterTime);
 
-		WAPIResultWrapper grades = speesb.getGradesViaESB(values);
+		WAPIResultWrapper grades = gradeio.getGradesViaESB(values);
 		// check for possibility of no new grades.
 		if (grades.getStatus() == HttpStatus.SC_NOT_FOUND) {
 			return "[]";
@@ -332,7 +332,7 @@ public class SPEMaster {
 		HashMap<String,String> value = setupPutGradeCall(user);
 		boolean success = false;
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
+		WAPIResultWrapper wrappedResult = gradeio.putGradeViaESB(value);
 
 		M_log.debug("update: {}",wrappedResult.toJson());
 
@@ -383,7 +383,7 @@ public class SPEMaster {
 	}
 
 	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistBlobException, SPEEsbException {
+	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistBlobException, GradeIOException {
 
 		String useTransferTime;
 
@@ -407,12 +407,12 @@ public class SPEMaster {
 		}
 
 		M_log.error("Can not determine last graded time");
-		throw  new SPEEsbException("Can not determine last graded time");
+		throw  new GradeIOException("Can not determine last graded time");
 
 	}
 
 	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistBlobException, SPEEsbException {
+	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistBlobException, GradeIOException {
 
 		String useTransferTime;
 
@@ -437,7 +437,7 @@ public class SPEMaster {
 		}
 
 		M_log.error("Can not determine last graded time");
-		throw  new SPEEsbException("Can not determine last graded time");
+		throw  new GradeIOException("Can not determine last graded time");
 
 
 //		if (lastTransferTime == null || lastTransferTime.isEmpty()) {

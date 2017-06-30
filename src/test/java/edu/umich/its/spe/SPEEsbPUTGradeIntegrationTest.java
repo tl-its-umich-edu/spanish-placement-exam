@@ -43,7 +43,7 @@ public class SPEEsbPUTGradeIntegrationTest {
 	public void tearDown() throws Exception {
 	}
 
-	SPEEsb speesb;
+	GradeIO speesb;
 
 	@Autowired
 	SPEProperties speproperties;

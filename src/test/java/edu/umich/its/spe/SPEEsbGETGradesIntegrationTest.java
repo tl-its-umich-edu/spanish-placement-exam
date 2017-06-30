@@ -52,7 +52,7 @@ public class SPEEsbGETGradesIntegrationTest {
 	public void tearDown() throws Exception {
 	}
 
-	SPEEsb speesb;
+	GradeIO speesb;
 
 	@Autowired
 	SPESummary spesummary;
@@ -69,7 +69,7 @@ public class SPEEsbGETGradesIntegrationTest {
 	}
 
 	@Test
-	public void getGradesTest() throws IOException, SPEEsbException {
+	public void getGradesTest() throws IOException, GradeIOException {
 
 		List<String> keys = speesb.setupGetGradePropertyValues();
 		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
