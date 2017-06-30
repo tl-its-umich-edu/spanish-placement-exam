@@ -175,9 +175,9 @@ public class SPEEsbImpl implements GradeIO {
 	// ESB can be reached and do something requiring authorization.
 
 	@Override
-	public boolean verifyESBConnection(HashMap<String, String> value) {
+	public boolean verifyESBConnection(SPEProperties speproperties) {
 
-		WAPI wapi = new WAPI(value);
+		WAPI wapi = new WAPI(speproperties.getEsb());
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
 

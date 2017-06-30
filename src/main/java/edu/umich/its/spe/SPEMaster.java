@@ -167,10 +167,7 @@ public class SPEMaster {
 	}
 
 	public Boolean verifyESB() {
-		// TODO: implement verify by renewing access token.
-		M_log.error("verify is not yet used by SPEMaster");
-		HashMap<String,String> value = setupESBVerifyCall();
-		return gradeio.verifyESBConnection(value);
+		return gradeio.verifyESBConnection(speproperties);
 	}
 
 	/*************** get grades via ESB **************/

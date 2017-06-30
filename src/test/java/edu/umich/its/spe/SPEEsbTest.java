@@ -99,8 +99,7 @@ public class SPEEsbTest {
 		List<String> keys = speesb.setupPutGradePropertyValues();
 		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
 
-		//WAPIResultWrapper wrappedResult = speesb.verify(value);
-		Boolean verify_result = speesb.verifyESBConnection(value);
+		Boolean verify_result = speesb.verifyESBConnection(speproperties);
 		M_log.debug("update: {}",verify_result);
 		assertTrue("successful verify",verify_result);
 	}

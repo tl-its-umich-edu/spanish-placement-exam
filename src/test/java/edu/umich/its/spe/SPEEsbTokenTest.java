@@ -65,34 +65,31 @@ public class SPEEsbTokenTest {
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbTokenTest.class);
 
 	protected void testESBVerify() {
-		List<String> keys = speesb.setupPutGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
-
-		Boolean verify_result = speesb.verifyESBConnection(value);
+		Boolean verify_result = speesb.verifyESBConnection(speproperties);
 		M_log.debug("update: {}",verify_result);
 		assertTrue("successful verify",verify_result);
 	}
-	
+
 	@Test
 	public void checkVerifyTest1() throws IOException {
 		testESBVerify();
 	}
-	
+
 	@Test
 	public void checkVerifyTest2() throws IOException {
 		testESBVerify();
 	}
-	
+
 	@Test
 	public void checkVerifyTest3() throws IOException {
 		testESBVerify();
 	}
-	
+
 	@Test
 	public void checkVerifyTest4() throws IOException {
 		testESBVerify();
 	}
-	
+
 	@Test
 	public void checkVerifyTest5() throws IOException {
 		testESBVerify();

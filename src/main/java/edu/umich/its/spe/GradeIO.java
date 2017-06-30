@@ -5,9 +5,10 @@ import java.util.List;
 
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
-/* 
+/*
  * Interface describing the local interface to the ESB calls.  This is used
- * so it is easy to mock the calls.
+ * so it is easy to mock the calls.  Methods should only depend on
+ * values required semantically for a request and a generic properties map.
  */
 
 public interface GradeIO {
@@ -19,8 +20,8 @@ public interface GradeIO {
 	// Call the esb and return a wrapped result.
 	WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws GradeIOException;
 	WAPIResultWrapper putGradeViaESB(HashMap<String, String> value);
-	
+
 	// check that can access the ESB.
-	boolean verifyESBConnection(HashMap<String, String> value);
+	boolean verifyESBConnection(SPEProperties speproperties);
 
 }
