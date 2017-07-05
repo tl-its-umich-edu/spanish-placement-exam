@@ -121,7 +121,7 @@ public class SPEMaster {
 		String assignmentsFromDW;
 
 		try {
-			assignmentsFromDW = getSPEGrades(lastUpdateTime);
+			assignmentsFromDW = getSPEGrades(speproperties,lastUpdateTime);
 
 			//// Extract grades from JSON the grades for insertion
 
@@ -175,14 +175,6 @@ public class SPEMaster {
 	/*
 	 * Setup the hash of values needed for the call to get grades.
 	 */
-	protected HashMap<String, String> setupGetGradesCall(String gradedAfterTime) {
-		M_log.debug("spe properties: "+speproperties);
-		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
-		value.putAll(speproperties.getGetgrades());
-		value.put("gradedaftertime", gradedAfterTime);
-		return value;
-	}
 
 	/*
 	 * Get grades as JSON string.  Only grades after the gradeAfterTime
@@ -191,12 +183,11 @@ public class SPEMaster {
 	 * TODO: timestamp default value?
 	 */
 
-	public String getSPEGrades(String gradedAfterTime) throws GradeIOException {
+	public String getSPEGrades(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 
 		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
-		HashMap<String, String> values = setupGetGradesCall(gradedAfterTime);
+		WAPIResultWrapper grades = gradeio.getGradesViaESB(speproperties,gradedAfterTime);
 
-		WAPIResultWrapper grades = gradeio.getGradesViaESB(values);
 		// check for possibility of no new grades.
 		if (grades.getStatus() == HttpStatus.SC_NOT_FOUND) {
 			return "[]";

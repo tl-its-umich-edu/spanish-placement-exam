@@ -14,11 +14,10 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 public interface GradeIO {
 
 	// Set up the values required to do get (put) calls for grades via the ESB.
-	List<String> setupGetGradePropertyValues();
 	List<String> setupPutGradePropertyValues();
 
 	// Call the esb and return a wrapped result.
-	WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws GradeIOException;
+	WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException;
 	WAPIResultWrapper putGradeViaESB(HashMap<String, String> value);
 
 	// check that can access the ESB.

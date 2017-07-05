@@ -67,17 +67,25 @@ public class SPEEsbTest {
 
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbTest.class);
 
-	@Test
-	public void getGradesTest() throws IOException, GradeIOException {
+	String aprilFirst = "2017-04-01 18:00:00";
 
-		List<String> keys = speesb.setupGetGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
-
-		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(value);
+	// First call fails so make it easy to run test twice.
+	protected void getGradesCommonMethod() throws GradeIOException {
+		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(speproperties,aprilFirst);
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;
 		assertEquals("successful call",callOk, true);
+	}
+
+	@Test
+	public void getGradesTest() throws IOException, GradeIOException {
+		getGradesCommonMethod();
+	}
+
+	@Test
+	public void getGradesTest2() throws IOException, GradeIOException {
+		getGradesCommonMethod();
 	}
 
 	@Test
@@ -95,9 +103,6 @@ public class SPEEsbTest {
 
 	@Test
 	public void checkVerifyTest() throws IOException {
-
-		List<String> keys = speesb.setupPutGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
 
 		Boolean verify_result = speesb.verifyESBConnection(speproperties);
 		M_log.debug("update: {}",verify_result);

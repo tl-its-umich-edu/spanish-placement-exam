@@ -58,13 +58,23 @@ public class SPEEsbImpl implements GradeIO {
 	/**************************
 	 * get grades from data warehouse
 	 *********************/
+
+	protected HashMap<String, String> setupGetGradesCall(SPEProperties speproperties,String gradedAfterTime) {
+		M_log.debug("spe properties: "+speproperties);
+		HashMap<String,String> value = new HashMap<String,String>();
+		value.putAll(speproperties.getEsb());
+		value.putAll(speproperties.getGetgrades());
+		value.put("gradedaftertime", gradedAfterTime);
+		return value;
+	}
+
 	// Extend the properties list for the properties that get grade requests
 	// require.
 	public List<String> setupGetGradePropertyValues() {
 
 		List<String> keys = new ArrayList<>(defaultKeys);
 
-		// // add gradedaftertime as a property for testing and defaulting.
+		// add gradedaftertime as a property for testing and defaulting.
 		keys.add("gradedaftertime");
 		keys.add("COURSEID");
 		keys.add("ASSIGNMENTTITLE");
@@ -72,36 +82,40 @@ public class SPEEsbImpl implements GradeIO {
 		return keys;
 	}
 
+
 	// Go get the SPE grades
 
-	public WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws GradeIOException {
+	public WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
+		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
+		HashMap<String, String> values = setupGetGradesCall(speproperties,gradedAfterTime);
+
 		HashMap<String, String> headers = new HashMap<String, String>();
 
-		headers.put("gradedAfterTime", value.get("gradedaftertime"));
-		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
+		headers.put("gradedAfterTime", values.get("gradedaftertime"));
+		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
 
 		M_log.debug("spesummary: {}",spesummary);
-		spesummary.setCourseId(value.get("COURSEID"));
+		spesummary.setCourseId(values.get("COURSEID"));
 
 		StringBuilder url = new StringBuilder();
 
 		try {
-			url.append(value.get("apiPrefix"))
+			url.append(values.get("apiPrefix"))
 			.append("/Unizin/data/CourseId/")
-			.append(value.get("COURSEID"))
+			.append(values.get("COURSEID"))
 			.append("/AssignmentTitle/")
-			.append(URLEncoder.encode(value.get("ASSIGNMENTTITLE"),"UTF-8"));
+			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8"));
 
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
 			throw(new GradeIOException("encoding exception in getGrades",e));
 		}
 
-		M_log.debug("getGrades: value:[" + value.toString() + "]");
+		M_log.debug("getGrades: values:[" + values.toString() + "]");
 		M_log.debug("getGrades: request url: [" + url.toString() + "]");
 		M_log.debug("getGrades: headers: [" + headers.toString() + "]");
 
-		WAPI wapi = new WAPI(value);
+		WAPI wapi = new WAPI(values);
 
 		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
 
