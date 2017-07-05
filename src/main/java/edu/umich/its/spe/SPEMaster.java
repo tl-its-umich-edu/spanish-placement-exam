@@ -313,7 +313,7 @@ public class SPEMaster {
 			success = true;
 		}
 
-		spesummary.appendUser((String) user.get("Unique_name"), success);
+		spesummary.appendUser((String) user.get("Unique_Name"), success);
 		M_log.error("error updating grade: "+wrappedResult.toJson());
 		return success;
 	}
