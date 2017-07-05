@@ -265,21 +265,6 @@ public class SPEMaster {
 	 * Setup the hash of values needed for the call to get grades.
 	 */
 
-	protected HashMap<String, String> setupPutGradeCall(HashMap<?, ?> user) {
-		M_log.debug("spe properties: "+speproperties);
-		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
-		// if no user that use default values (for testing).
-		if (user == null || user.isEmpty()) {
-			value.putAll(speproperties.getPutgrades());
-		}
-		else {
-			value.put("SCORE",(String) user.get("Score"));
-			value.put("UNIQNAME",(String) user.get("Unique_Name"));
-		}
-		return value;
-	}
-
 	//{"Meta":{"Message":"COMPLETED","httpStatus":200},"Result":{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"},"@schemaLocation":"http://mais.he.umich.edu/schemas/putPlcExamScoreResponse.v1 http://csqa9ib.dsc.umich.edu/PSIGW/PeopleSoftServiceListeningConnector/putPlcExamScoreResponse.v1.xsd"}}}
 
 	//{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"
@@ -317,22 +302,19 @@ public class SPEMaster {
 
 	// Send a single grade to MPathways.
 	public boolean putSPEGrade(HashMap<?, ?> user) {
-		HashMap<String,String> value = setupPutGradeCall(user);
 		boolean success = false;
 
-		WAPIResultWrapper wrappedResult = gradeio.putGradeViaESB(value);
+		WAPIResultWrapper wrappedResult = gradeio.putGradeViaESB(speproperties,user);
 
 		M_log.debug("update: {}",wrappedResult.toJson());
 
 		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
-			//return true;
 			success = true;
 		}
 
-		spesummary.appendUser(value.get("UNIQNAME"), success);
+		spesummary.appendUser((String) user.get("Unique_name"), success);
 		M_log.error("error updating grade: "+wrappedResult.toJson());
-		//return false;
 		return success;
 	}
 

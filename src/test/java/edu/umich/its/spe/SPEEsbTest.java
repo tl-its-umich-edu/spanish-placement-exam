@@ -17,8 +17,7 @@ import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -92,10 +91,12 @@ public class SPEEsbTest {
 	// fails SPEEsbTest.java
 	public void putGradesTest() throws IOException {
 
-		List<String> keys = speesb.setupPutGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
+		HashMap<String, String> user = new HashMap<String,String>();
+		user.put("Unique_name","ABC");
+		user.put("Score","1.1");
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
+		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(speproperties,user);
+
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());

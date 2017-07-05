@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -143,13 +144,34 @@ public class SPEEsbImpl implements GradeIO {
 		return keys;
 	}
 
+	protected HashMap<String, String> setupPutGradeCall(SPEProperties speproperties,HashMap<?, ?> user) {
+		M_log.debug("spe properties: "+speproperties);
+		M_log.debug("sPGC: user: {}",user);
+
+		HashMap<String,String> value = new HashMap<String,String>();
+		value.putAll(speproperties.getEsb());
+
+		// if no user that use default values (for testing).
+		if (user == null || user.isEmpty()) {
+			value.putAll(speproperties.getPutgrades());
+		}
+		else {
+			value.put("SCORE",(String) user.get("Score"));
+			value.put("UNIQNAME",(String) user.get("Unique_Name"));
+		}
+
+		return value;
+	}
+
 	// Put a single grade in MPathways
 
 	@Override
-	public WAPIResultWrapper putGradeViaESB(HashMap<String, String> value) {
+	public WAPIResultWrapper putGradeViaESB(SPEProperties speproperties,HashMap<?, ?> user) {
 		HashMap<String, String> headers = new HashMap<String, String>();
+		M_log.debug("user to update: " + user.toString());
+		M_log.debug("pGVESB: speproperties: {}",speproperties);
 
-		M_log.info("speproperties for esb: " + value.toString());
+		HashMap<String,String> value = setupPutGradeCall(speproperties,user);
 
 		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
 

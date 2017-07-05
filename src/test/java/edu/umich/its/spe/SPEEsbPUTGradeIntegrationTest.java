@@ -64,10 +64,11 @@ public class SPEEsbPUTGradeIntegrationTest {
 	// fails when run from SPEEsbTest.java
 	public void putGradesTestSPEEsbTest() throws IOException {
 
-		List<String> keys = speesb.setupPutGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
+		HashMap<String, String> user = new HashMap<String,String>();
+		user.put("Unique_name","ABC");
+		user.put("Score","1.1");
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
+		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(speproperties, user);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());
@@ -76,10 +77,11 @@ public class SPEEsbPUTGradeIntegrationTest {
 	@Test
 	public void putGradesTest() throws IOException {
 
-		List<String> keys = speesb.setupPutGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
+		HashMap<String, String> user = new HashMap<String,String>();
+		user.put("Unique_name","ABC");
+		user.put("Score","1.1");
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
+		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(speproperties,user);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());
