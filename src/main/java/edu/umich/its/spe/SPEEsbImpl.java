@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 import org.json.JSONObject;
 
 import org.apache.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import edu.umich.ctools.esb.utils.WAPI;
@@ -28,6 +30,7 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 // Spring: this makes the class discoverable for autowiring.
 @Component
+@Qualifier("ESBIO")
 
 public class SPEEsbImpl implements GradeIO {
 
