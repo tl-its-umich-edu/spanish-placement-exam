@@ -57,19 +57,20 @@ public class GradeIOWrapper implements GradeIO {
 
 		M_log.debug("speesb: {}",speesb);
 		M_log.debug("fileIO: {}",fileIO);
-		M_log.debug("speproperties: {}",speproperties);
-		M_log.debug("getGradesIO: {}",getGradesIO);
+		M_log.info("speproperties: {}",speproperties);
+		M_log.info("getGradesIO: {}",getGradesIO);
 
-		HashMap<String,String> testproperties = speproperties.getTest();
+		//HashMap<String,String> testproperties = speproperties.getTest();
+		HashMap<String,String> testproperties = speproperties.getEsb();
 
-		String getGradeIOProperty = safeGetPropertyValue(testproperties,"getGradeIO");
+		String getGradeIOProperty = SPEUtils.safeGetPropertyValue(testproperties,"getGradeIO");
 		if (getGradeIOProperty.length() == 0 || "ESBIO".equals(getGradeIOProperty.toUpperCase())) {
 			getGradesIO = speesb;
 		} else {
 			getGradesIO = fileIO;
 		}
 
-		String putGradeIOProperty = safeGetPropertyValue(testproperties,"putGradeIO");
+		String putGradeIOProperty = SPEUtils.safeGetPropertyValue(testproperties,"putGradeIO");
 		if (putGradeIOProperty.length() == 0 || "ESBIO".equals(getGradeIOProperty.toUpperCase())) {
 			putGradeIO = speesb;
 		} else if (putGradeIOProperty.length() > 0) {
@@ -79,13 +80,6 @@ public class GradeIOWrapper implements GradeIO {
 		M_log.info("getGradesIO: {} putGradeIO: {}",getGradesIO,putGradeIO);
 
 	}
-
-	// get a string property and default it to empty string.
-	protected String safeGetPropertyValue(HashMap<String, String> testproperties, String propertyKey) {
-		String propertyValue = (testproperties.get(propertyKey) == null ? "" :  testproperties.get(propertyKey));
-		return propertyValue;
-	}
-
 
 	// get a grade (eventually not by esb only)
 	@Override
@@ -103,7 +97,9 @@ public class GradeIOWrapper implements GradeIO {
 	// Verify the IO connection.  Currently always check the esb.
 	@Override
 	public boolean verifyESBConnection(SPEProperties speproperties) {
-		return speesb.verifyESBConnection(speproperties);
+		M_log.error("FIX ME: always returns true right now.");
+		//return speesb.verifyESBConnection(speproperties);
+		return true;
 	}
 
 }

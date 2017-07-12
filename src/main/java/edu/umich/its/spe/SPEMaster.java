@@ -115,8 +115,10 @@ public class SPEMaster {
 
 		//// Get the relevant grades.
 		String lastUpdateTime = readLastGradeTransferTime();
-		M_log.error("fake lastUpdateTime");
-		lastUpdateTime = "2017-03-08 15:38:21";
+		//lastUpdateTime = "2017-03-08 15:38:21";
+		lastUpdateTime = "2017-07-11 15:38:21";
+		M_log.error("fake lastUpdateTime: {}",lastUpdateTime);
+
 		M_log.info("lastUpdateTime: {}",lastUpdateTime);
 		String assignmentsFromDW;
 
@@ -232,12 +234,29 @@ public class SPEMaster {
 		return gradeMapList;
 	}
 
+//	// convert a single JSON version of an assignment to a grademap.
+//	static protected HashMap<String, String> OLDconvertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
+//		HashMap<String,String> grademap = new HashMap<String,String>();
+//		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
+//		grademap.put("Score",JSONObject.valueToString(assignment.get("Score")));
+//		grademap.put("Unique_Name", assignment.getString("Unique_Name"));
+//		return grademap;
+//	}
+
 	// convert a single JSON version of an assignment to a grademap.
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
-		HashMap<String,String> grademap = new HashMap<String,String>();
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
-		grademap.put("Score",JSONObject.valueToString(assignment.get("Score")));
-		grademap.put("Unique_Name", assignment.getString("Unique_Name"));
+		String score = JSONObject.valueToString(assignment.get("Score"));
+		String unique_name = assignment.getString("Unique_Name");
+
+		return createGradeMap(score, unique_name);
+	}
+
+	public static HashMap<String, String> createGradeMap(String score, String unique_name) {
+		HashMap<String,String> grademap = new HashMap<String,String>();
+
+		grademap.put("Score",score);
+		grademap.put("Unique_Name", unique_name);
 		return grademap;
 	}
 
