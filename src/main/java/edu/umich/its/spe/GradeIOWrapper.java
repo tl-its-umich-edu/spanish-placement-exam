@@ -19,17 +19,18 @@ import org.springframework.stereotype.Component;
 
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
+// Mark as Spring component and indicate this is the implementation of GradeIO to use by default.
 
 @Component
-// There are multiple implementations so make it clear this is the one to use.
 @Primary
 
 public class GradeIOWrapper implements GradeIO {
 
 	static final Logger M_log = LoggerFactory.getLogger(GradeIOWrapper.class);
 
-	// Get the two implementations injected.  Qualifier is used to allow multiple
-	// implementations of the GradeIO interface to be injected automatically.
+	// Get the two real implementations injected.  @Qualifier is used to disambiguate multiple
+	// implementations of the GradeIO interface and allow them to be injected automatically.
+
 	@Autowired
 	@Qualifier("ESBIO")
 	GradeIO speesb;
@@ -47,20 +48,15 @@ public class GradeIOWrapper implements GradeIO {
 
 	/*
 	 * The injected values are only available AFTER construction, so
-	 * put the setup in a @PostConstruct method.
+	 * put the setup code in a @PostConstruct method.
 	 */
 
 	@PostConstruct
 	public void setupGradeIOWrapper() {
 
 		M_log.info("setting up GradeIOWrapper");
-
-		M_log.debug("speesb: {}",speesb);
-		M_log.debug("fileIO: {}",fileIO);
 		M_log.info("speproperties: {}",speproperties);
-		M_log.info("getGradesIO: {}",getGradesIO);
 
-		//HashMap<String,String> testproperties = speproperties.getTest();
 		HashMap<String,String> testproperties = speproperties.getEsb();
 
 		String getGradeIOProperty = SPEUtils.safeGetPropertyValue(testproperties,"getGradeIO");
@@ -71,7 +67,7 @@ public class GradeIOWrapper implements GradeIO {
 		}
 
 		String putGradeIOProperty = SPEUtils.safeGetPropertyValue(testproperties,"putGradeIO");
-		if (putGradeIOProperty.length() == 0 || "ESBIO".equals(getGradeIOProperty.toUpperCase())) {
+		if (putGradeIOProperty.length() == 0 || "ESBIO".equals(putGradeIOProperty.toUpperCase())) {
 			putGradeIO = speesb;
 		} else if (putGradeIOProperty.length() > 0) {
 			putGradeIO = fileIO;
@@ -81,23 +77,23 @@ public class GradeIOWrapper implements GradeIO {
 
 	}
 
-	// get a grade (eventually not by esb only)
+	// delegate to appropriate implementation.
 	@Override
 	public WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime)
 			throws GradeIOException {
 		return getGradesIO.getGradesViaESB(speproperties, gradedAfterTime);
 	}
 
-	// put a grade (eventually not by esb only)
+	// delegate to appropriate implementation.
 	@Override
 	public WAPIResultWrapper putGradeViaESB(SPEProperties speproperties, HashMap<?, ?> user) {
 		return putGradeIO.putGradeViaESB(speproperties, user);
 	}
 
-	// Verify the IO connection.  Currently always check the esb.
+	// Verify the IO connection.  Currently a NO OP.
 	@Override
 	public boolean verifyESBConnection(SPEProperties speproperties) {
-		M_log.error("FIX ME: always returns true right now.");
+		M_log.error("verifyESBConnection: FIX ME: always returns true right now.");
 		//return speesb.verifyESBConnection(speproperties);
 		return true;
 	}

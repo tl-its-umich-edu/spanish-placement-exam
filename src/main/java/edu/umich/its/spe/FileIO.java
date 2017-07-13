@@ -8,14 +8,13 @@ import java.io.IOException;
  * so either get/put or both (or neither) use FileIO.  Any additional properties required for the IO
  * must either be provided on construction or come from the properties files.
  *
+ * Methods are static but calls based covers are provided to be consistent with calls
+ * to the ESB implementation.
+ *
+ * Input file format is string version of JSON WAPI wrapped response.  However line breaks are permitted.
  *
  *	Throws GradeIOException if there is a problem.
  *
- * FORMAT will be the same as comes from the ESB.
- * TODO: verify that invoked correctly based on properties.
- * TODO: get relevant file names from properties, die if not there.
- * TODO: read from file
- * TODO: write to file
  */
 
 import java.util.HashMap;
@@ -37,7 +36,7 @@ import org.json.JSONObject;
 public class FileIO implements GradeIO {
 	private static final Logger M_log = LoggerFactory.getLogger(FileIO.class);
 
-	/******* Covers to call underlying static methods *********/
+	/******* Class covers to call underlying static methods *********/
 	@Override
 	public WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime)
 			throws GradeIOException {
@@ -54,9 +53,7 @@ public class FileIO implements GradeIO {
 		return verifyConnectionFileStatic(speproperties);
 	}
 
-
 	/********** Static methods ************/
-
 
 	public static WAPIResultWrapper getGradesFileStatic(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 		M_log.debug("getGrades FileIO: properties: {} gradedAfterTime: {}",speproperties,gradedAfterTime);
@@ -71,9 +68,9 @@ public class FileIO implements GradeIO {
 		String gradesString;
 
 		try {
-			gradesString = FileUtils.readFileToString(file,"UTF-8");
+			// allow input file to have line breaks.
+			gradesString = FileUtils.readFileToString(file,"UTF-8").replaceAll("\\r|\\n", " ");
 		} catch (IOException e) {
-			//throw new GradeIOException("FileIO IOException: file: "+fileName,e);
 			String msg = "FileIO: exception: "+e.getMessage() + " file: "+fileName;
 			M_log.info(msg);
 			return new WAPIResultWrapper(WAPI.HTTP_NOT_FOUND,msg,new JSONObject("{}"));
@@ -85,11 +82,10 @@ public class FileIO implements GradeIO {
 		}
 
 		JSONObject jo= new JSONObject(gradesString);
-		M_log.info("jo: {}",jo);
+		M_log.debug("jo: {}",jo);
 		JSONObject jr = jo.getJSONObject("Result");
-		M_log.info("jr: {}",jr);
+		M_log.debug("jr: {}",jr);
 
-		//return new WAPIResultWrapper(WAPI.HTTP_SUCCESS,"returned from file: "+fileName,new JSONObject(gradesString));
 		return new WAPIResultWrapper(WAPI.HTTP_SUCCESS,"returned from file: "+fileName,jr);
 	}
 
@@ -99,24 +95,22 @@ public class FileIO implements GradeIO {
 
 		HashMap<String,String> ioProperties = speproperties.getEsb();
 		String fileName = SPEUtils.safeGetPropertyValue(ioProperties,"putGradeIO");
-		M_log.info("putGradeFile: filename: {}",fileName);
+		M_log.info("putGrade: updated {} for user: {}",fileName,user.toString());
 		File file = new File(fileName);
 
 		try {
 			FileUtils.writeStringToFile(file, user.toString()+System.lineSeparator(), "UTF-8",true);
-			//gradesString = FileUtils.readFileToString(file,"UTF-8");
 		} catch (IOException e) {
-			//throw new GradeIOException("FileIO IOException: file: "+fileName,e);
 			String msg = "FileIO: exception: "+e.getMessage();
 			M_log.info(msg);
-			return new WAPIResultWrapper(WAPI.HTTP_NOT_FOUND,msg,new JSONObject("{}"));
+			return new WAPIResultWrapper(WAPI.HTTP_UNKNOWN_ERROR,msg,new JSONObject("{}"));
 		}
 		return new WAPIResultWrapper(WAPI.HTTP_SUCCESS,success_msg, new JSONObject("{}"));
 	}
 
-	/* nop */
+	/* NO OP */
 	public static boolean verifyConnectionFileStatic(SPEProperties speproperties) {
-		M_log.debug("verifyESB: FileIO: is nop");
+		M_log.debug("verifyESB: FileIO: is NOP");
 		return true;
 	}
 

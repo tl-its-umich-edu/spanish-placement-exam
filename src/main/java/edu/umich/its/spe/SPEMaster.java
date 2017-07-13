@@ -325,7 +325,7 @@ public class SPEMaster {
 
 		WAPIResultWrapper wrappedResult = gradeio.putGradeViaESB(speproperties,user);
 
-		M_log.debug("update: {}",wrappedResult.toJson());
+		M_log.info("update: {}",wrappedResult.toJson());
 
 		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
@@ -333,7 +333,7 @@ public class SPEMaster {
 		}
 
 		spesummary.appendUser((String) user.get("Unique_Name"), success);
-		M_log.error("error updating grade: "+wrappedResult.toJson());
+		M_log.info("grade update response: "+wrappedResult.toJson());
 		return success;
 	}
 
@@ -383,8 +383,8 @@ public class SPEMaster {
 			return useTransferTime;
 		}
 
+		M_log.error("transfer time logic is wrong");
 		// if a time was saved use that.
-		//useTransferTime = readLastGradeTransferTime();
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
