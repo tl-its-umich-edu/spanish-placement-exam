@@ -89,7 +89,7 @@ public class SPEEsbImpl implements GradeIO {
 
 	// Go get the SPE grades
 
-	public WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
+	public WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
 		HashMap<String, String> values = setupGetGradesCall(speproperties,gradedAfterTime);
 
@@ -169,7 +169,7 @@ public class SPEEsbImpl implements GradeIO {
 	// Put a single grade in MPathways
 
 	@Override
-	public WAPIResultWrapper putGradeViaESB(SPEProperties speproperties,HashMap<?, ?> user) {
+	public WAPIResultWrapper putGradeVia(SPEProperties speproperties,HashMap<?, ?> user) {
 		HashMap<String, String> headers = new HashMap<String, String>();
 		M_log.debug("user to update: " + user.toString());
 		M_log.debug("pGVESB: speproperties: {}",speproperties);
@@ -214,7 +214,7 @@ public class SPEEsbImpl implements GradeIO {
 	// ESB can be reached and do something requiring authorization.
 
 	@Override
-	public boolean verifyESBConnection(SPEProperties speproperties) {
+	public boolean verifyConnection(SPEProperties speproperties) {
 
 		WAPI wapi = new WAPI(speproperties.getEsb());
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();

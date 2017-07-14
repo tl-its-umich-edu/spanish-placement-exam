@@ -14,10 +14,10 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 public interface GradeIO {
 
 	// Call the update implementation and return a wrapped result.
-	WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException;
-	WAPIResultWrapper putGradeViaESB(SPEProperties speproperties,HashMap<?, ?> user);
+	WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException;
+	WAPIResultWrapper putGradeVia(SPEProperties speproperties,HashMap<?, ?> user);
 
 	// check that can access the ESB.
-	boolean verifyESBConnection(SPEProperties speproperties);
+	boolean verifyConnection(SPEProperties speproperties);
 
 }

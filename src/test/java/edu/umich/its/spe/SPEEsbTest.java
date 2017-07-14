@@ -70,7 +70,7 @@ public class SPEEsbTest {
 
 	// First call fails so make it easy to run test twice.
 	protected void getGradesCommonMethod() throws GradeIOException {
-		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(speproperties,aprilFirst);
+		WAPIResultWrapper wrappedResult = speesb.getGradesVia(speproperties,aprilFirst);
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;
@@ -96,7 +96,7 @@ public class SPEEsbTest {
 		user.put("Unique_name","ABC");
 		user.put("Score","1.1");
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(speproperties,user);
+		WAPIResultWrapper wrappedResult = speesb.putGradeVia(speproperties,user);
 
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
@@ -106,7 +106,7 @@ public class SPEEsbTest {
 	@Test
 	public void checkVerifyTest() throws IOException {
 
-		Boolean verify_result = speesb.verifyESBConnection(speproperties);
+		Boolean verify_result = speesb.verifyConnection(speproperties);
 		M_log.debug("update: {}",verify_result);
 		assertTrue("successful verify",verify_result);
 	}

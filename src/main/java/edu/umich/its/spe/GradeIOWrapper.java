@@ -79,21 +79,21 @@ public class GradeIOWrapper implements GradeIO {
 
 	// delegate to appropriate implementation.
 	@Override
-	public WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime)
+	public WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime)
 			throws GradeIOException {
-		return getGradesIO.getGradesViaESB(speproperties, gradedAfterTime);
+		return getGradesIO.getGradesVia(speproperties, gradedAfterTime);
 	}
 
 	// delegate to appropriate implementation.
 	@Override
-	public WAPIResultWrapper putGradeViaESB(SPEProperties speproperties, HashMap<?, ?> user) {
-		return putGradeIO.putGradeViaESB(speproperties, user);
+	public WAPIResultWrapper putGradeVia(SPEProperties speproperties, HashMap<?, ?> user) {
+		return putGradeIO.putGradeVia(speproperties, user);
 	}
 
 	// Verify the IO connection.  Currently a NO OP.
 	@Override
-	public boolean verifyESBConnection(SPEProperties speproperties) {
-		M_log.error("verifyESBConnection: FIX ME: always returns true right now.");
+	public boolean verifyConnection(SPEProperties speproperties) {
+		M_log.error("verifyConnection: FIX ME: always returns true right now.");
 		//return speesb.verifyESBConnection(speproperties);
 		return true;
 	}

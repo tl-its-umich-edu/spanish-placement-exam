@@ -38,18 +38,18 @@ public class FileIO implements GradeIO {
 
 	/******* Class covers to call underlying static methods *********/
 	@Override
-	public WAPIResultWrapper getGradesViaESB(SPEProperties speproperties, String gradedAfterTime)
+	public WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime)
 			throws GradeIOException {
 		return getGradesFileStatic(speproperties,gradedAfterTime);
 	}
 
 	@Override
-	public WAPIResultWrapper putGradeViaESB(SPEProperties speproperties, HashMap<?, ?> user) {
+	public WAPIResultWrapper putGradeVia(SPEProperties speproperties, HashMap<?, ?> user) {
 		return putGradeFileStatic(speproperties, user);
 	}
 
 	@Override
-	public boolean verifyESBConnection(SPEProperties speproperties) {
+	public boolean verifyConnection(SPEProperties speproperties) {
 		return verifyConnectionFileStatic(speproperties);
 	}
 

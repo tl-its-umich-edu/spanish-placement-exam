@@ -65,7 +65,7 @@ public class SPEEsbTokenTest {
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbTokenTest.class);
 
 	protected void testESBVerify() {
-		Boolean verify_result = speesb.verifyESBConnection(speproperties);
+		Boolean verify_result = speesb.verifyConnection(speproperties);
 		M_log.debug("update: {}",verify_result);
 		assertTrue("successful verify",verify_result);
 	}

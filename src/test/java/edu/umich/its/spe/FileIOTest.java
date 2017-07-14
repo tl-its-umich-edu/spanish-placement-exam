@@ -80,25 +80,25 @@ public class FileIOTest {
 	// @throws GradeIOException
 	@Test(expected=GradeIOException.class)
 	public void testGetGradesNullArgs() throws GradeIOException {
-		WAPIResultWrapper result = fio.getGradesViaESB(null,null);
+		WAPIResultWrapper result = fio.getGradesVia(null,null);
 		fail("should have thrown exception");
 	}
 
 	@Test(expected=GradeIOException.class)
 	public void testGetGradesNullProperties() throws GradeIOException {
-		WAPIResultWrapper result = fio.getGradesViaESB(null,"HAPPY");
+		WAPIResultWrapper result = fio.getGradesVia(null,"HAPPY");
 		fail("should have thrown exception");
 	}
 
 	@Test(expected=GradeIOException.class)
 	public void testGetGradesNullTime() throws GradeIOException {
-		WAPIResultWrapper result = fio.getGradesViaESB(props,null);
+		WAPIResultWrapper result = fio.getGradesVia(props,null);
 		fail("should have thrown exception");
 	}
 
 	//@Test(expected=GradeIOException.class)
 	public void testGetGradesNot() throws GradeIOException {
-		WAPIResultWrapper result = fio.getGradesViaESB(props,null);
+		WAPIResultWrapper result = fio.getGradesVia(props,null);
 		fail("should have thrown exception");
 	}
 

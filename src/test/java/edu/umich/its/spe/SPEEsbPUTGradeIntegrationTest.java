@@ -68,7 +68,7 @@ public class SPEEsbPUTGradeIntegrationTest {
 		user.put("Unique_name","ABC");
 		user.put("Score","1.1");
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(speproperties, user);
+		WAPIResultWrapper wrappedResult = speesb.putGradeVia(speproperties, user);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());
@@ -81,7 +81,7 @@ public class SPEEsbPUTGradeIntegrationTest {
 		user.put("Unique_name","ABC");
 		user.put("Score","1.1");
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(speproperties,user);
+		WAPIResultWrapper wrappedResult = speesb.putGradeVia(speproperties,user);
 		M_log.debug("update: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		assertEquals("successful call",HttpStatus.SC_OK,wrappedResult.getStatus());

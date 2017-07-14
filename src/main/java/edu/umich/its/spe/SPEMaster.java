@@ -169,7 +169,7 @@ public class SPEMaster {
 	}
 
 	public Boolean verifyESB() {
-		return gradeio.verifyESBConnection(speproperties);
+		return gradeio.verifyConnection(speproperties);
 	}
 
 	/*************** get grades via ESB **************/
@@ -188,7 +188,7 @@ public class SPEMaster {
 	public String getSPEGrades(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 
 		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
-		WAPIResultWrapper grades = gradeio.getGradesViaESB(speproperties,gradedAfterTime);
+		WAPIResultWrapper grades = gradeio.getGradesVia(speproperties,gradedAfterTime);
 
 		// check for possibility of no new grades.
 		if (grades.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -323,7 +323,7 @@ public class SPEMaster {
 	public boolean putSPEGrade(HashMap<?, ?> user) {
 		boolean success = false;
 
-		WAPIResultWrapper wrappedResult = gradeio.putGradeViaESB(speproperties,user);
+		WAPIResultWrapper wrappedResult = gradeio.putGradeVia(speproperties,user);
 
 		M_log.info("update: {}",wrappedResult.toJson());
 
