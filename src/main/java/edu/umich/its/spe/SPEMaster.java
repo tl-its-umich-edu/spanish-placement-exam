@@ -234,15 +234,6 @@ public class SPEMaster {
 		return gradeMapList;
 	}
 
-//	// convert a single JSON version of an assignment to a grademap.
-//	static protected HashMap<String, String> OLDconvertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
-//		HashMap<String,String> grademap = new HashMap<String,String>();
-//		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
-//		grademap.put("Score",JSONObject.valueToString(assignment.get("Score")));
-//		grademap.put("Unique_Name", assignment.getString("Unique_Name"));
-//		return grademap;
-//	}
-
 	// convert a single JSON version of an assignment to a grademap.
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
@@ -398,46 +389,6 @@ public class SPEMaster {
 		M_log.error("Can not determine last graded time");
 		throw  new GradeIOException("Can not determine last graded time");
 
-	}
-
-	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistBlobException, GradeIOException {
-
-		String useTransferTime;
-
-		// if specify specific override time use that.  This is a separate property to make it easy to
-		// override from command line.
-		String gradeDateOverride = speproperties.getGetgrades().get("gradedateoverride");
-		if (gradeDateOverride != null && gradeDateOverride.length() > 0) {
-			return gradeDateOverride;
-		}
-
-		// if a time was saved use that.
-		//useTransferTime = readLastGradeTransferTime();
-		useTransferTime = persistString.readBlob();
-		if (useTransferTime != null && useTransferTime.length() > 0) {
-			return useTransferTime;
-		}
-
-		// if a time was saved use that.
-		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
-		if (useTransferTime != null && useTransferTime.length() > 0) {
-			return useTransferTime;
-		}
-
-		M_log.error("Can not determine last graded time");
-		throw  new GradeIOException("Can not determine last graded time");
-
-
-//		if (lastTransferTime == null || lastTransferTime.isEmpty()) {
-//			//M_log.info("default gradedaftertime: {}",speproperties.getGetgrades().get("gradedaftertime"));
-//			M_log.info("persisted gradedaftertime was empty");
-//
-//		//	writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
-//		//	return readLastGradeTransferTime();
-//			lastTransferTime = readLastGradeTransferTime();
-//		}
-		//return lastTransferTime;
 	}
 
 	// If no time is specified used the current script starting time.
