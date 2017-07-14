@@ -55,14 +55,19 @@ public class FileIO implements GradeIO {
 
 	/********** Static methods ************/
 
+	public static String getIoProperty(SPEProperties speproperties, String propertyKey) {
+		HashMap<String,String> ioProperties = speproperties.getIo();
+		String propertyValue = SPEUtils.safeGetPropertyValue(ioProperties,propertyKey);
+		return propertyValue;
+	}
+
 	public static WAPIResultWrapper getGradesFileStatic(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 		M_log.debug("getGrades FileIO: properties: {} gradedAfterTime: {}",speproperties,gradedAfterTime);
 		if (speproperties == null || gradedAfterTime == null || gradedAfterTime.length() == 0) {
 			throw new GradeIOException("FileIO Call invalid: speproperties: "+ speproperties+" gradedAfterTime: "+gradedAfterTime);
 		}
 
-		HashMap<String,String> ioProperties = speproperties.getIo();
-		String fileName = SPEUtils.safeGetPropertyValue(ioProperties,"getGradeIO");
+		String fileName = getIoProperty(speproperties, "getGradeIO");
 
 		File file = new File(fileName);
 		String gradesString;
@@ -72,7 +77,7 @@ public class FileIO implements GradeIO {
 			gradesString = FileUtils.readFileToString(file,"UTF-8").replaceAll("\\r|\\n", " ");
 		} catch (IOException e) {
 			String msg = "FileIO: exception: "+e.getMessage() + " file: "+fileName;
-			M_log.info(msg);
+			M_log.error(msg);
 			return new WAPIResultWrapper(WAPI.HTTP_NOT_FOUND,msg,new JSONObject("{}"));
 		}
 
@@ -93,8 +98,8 @@ public class FileIO implements GradeIO {
 		M_log.debug("putGrade FileIO: properties: {} gradedAfterTime: {}",speproperties,user);
 		String success_msg = "wrote user";
 
-		HashMap<String,String> ioProperties = speproperties.getIo();
-		String fileName = SPEUtils.safeGetPropertyValue(ioProperties,"putGradeIO");
+		String fileName = getIoProperty(speproperties, "putGradeIO");
+
 		M_log.info("putGrade: updated {} for user: {}",fileName,user.toString());
 		File file = new File(fileName);
 
@@ -102,17 +107,16 @@ public class FileIO implements GradeIO {
 			FileUtils.writeStringToFile(file, user.toString()+System.lineSeparator(), "UTF-8",true);
 		} catch (IOException e) {
 			String msg = "FileIO: exception: "+e.getMessage();
-			M_log.info(msg);
+			M_log.error(msg);
 			return new WAPIResultWrapper(WAPI.HTTP_UNKNOWN_ERROR,msg,new JSONObject("{}"));
 		}
 		return new WAPIResultWrapper(WAPI.HTTP_SUCCESS,success_msg, new JSONObject("{}"));
 	}
 
-	/* NO OP */
+	// No checking for File connection since this isn't used for production.
 	public static boolean verifyConnectionFileStatic(SPEProperties speproperties) {
 		M_log.debug("verifyESB: FileIO: is NOP");
 		return true;
 	}
-
 
 }
