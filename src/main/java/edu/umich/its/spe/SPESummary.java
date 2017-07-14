@@ -28,6 +28,7 @@ import lombok.Data;
 @Data
 public class SPESummary {
 	
+	private static final String LINE_RETURN = "\n";
 	private LocalDateTime startTime = LocalDateTime.now();
 	private LocalDateTime endTime;
 	
@@ -68,21 +69,21 @@ public class SPESummary {
 		 
 		 //System.out.println("start: "+startTime+" end: "+endTime+" duration: "+DurationFormatUtils.formatDurationHMS(dur.toMillis()));
 		
-		result.append("starting time: ").append(SPEMaster.formatTimestamp(startTime)).append("\n");
-		result.append("end time: ").append(SPEMaster.formatTimestamp(endTime)).append("\n");
-		result.append("elapsed time: ").append(DurationFormatUtils.formatDurationHMS(dur.toMillis())).append("\n");
+		result.append("starting time: ").append(SPEMaster.formatTimestamp(startTime)).append(LINE_RETURN);
+		result.append("end time: ").append(SPEMaster.formatTimestamp(endTime)).append(LINE_RETURN);
+		result.append("elapsed time: ").append(DurationFormatUtils.formatDurationHMS(dur.toMillis())).append(LINE_RETURN);
 		
-		result.append("storedGradesLastRetrieved: ").append(storedGradesLastRetrieved.toString()).append("\n");
-		result.append("useGradesLastRetrieved: ").append(useGradesLastRetrieved.toString()).append("\n");
-		result.append("updatedGradesLastRetrieved: ").append(updatedGradesLastRetrieved.toString()).append("\n");
+		result.append("storedGradesLastRetrieved: ").append(storedGradesLastRetrieved.toString()).append(LINE_RETURN);
+		result.append("useGradesLastRetrieved: ").append(useGradesLastRetrieved.toString()).append(LINE_RETURN);
+		result.append("updatedGradesLastRetrieved: ").append(updatedGradesLastRetrieved.toString()).append(LINE_RETURN);
 		
-		result.append("courseId: ").append(courseId.toString()).append("\n");
+		result.append("courseId: ").append(courseId.toString()).append(LINE_RETURN);
 		
-		result.append("users added: ").append(added).append(" errors: ").append(errors).append("\n");
+		result.append("users added: ").append(added).append(" errors: ").append(errors).append(LINE_RETURN);
 		
 		users.forEach((u) -> result.append("user: ").append(u.getLeft())
 				.append(" success: ").append(u.getRight())
-				.append("\n"));
+				.append(LINE_RETURN));
 		
 		return result.toString();
 	}

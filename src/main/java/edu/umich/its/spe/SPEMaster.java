@@ -338,13 +338,11 @@ public class SPEMaster {
 
 		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
-			//return true;
 			success = true;
 		}
 
 		spesummary.appendUser(value.get("UNIQNAME"), success);
 		M_log.error("error updating grade: "+wrappedResult.toJson());
-		//return false;
 		return success;
 	}
 
@@ -409,46 +407,6 @@ public class SPEMaster {
 		M_log.error("Can not determine last graded time");
 		throw  new SPEEsbException("Can not determine last graded time");
 
-	}
-
-	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTimeOLD(String lastTransferTime) throws PersistBlobException, SPEEsbException {
-
-		String useTransferTime;
-
-		// if specify specific override time use that.  This is a separate property to make it easy to
-		// override from command line.
-		String gradeDateOverride = speproperties.getGetgrades().get("gradedateoverride");
-		if (gradeDateOverride != null && gradeDateOverride.length() > 0) {
-			return gradeDateOverride;
-		}
-
-		// if a time was saved use that.
-		//useTransferTime = readLastGradeTransferTime();
-		useTransferTime = persistString.readBlob();
-		if (useTransferTime != null && useTransferTime.length() > 0) {
-			return useTransferTime;
-		}
-
-		// if a time was saved use that.
-		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
-		if (useTransferTime != null && useTransferTime.length() > 0) {
-			return useTransferTime;
-		}
-
-		M_log.error("Can not determine last graded time");
-		throw  new SPEEsbException("Can not determine last graded time");
-
-
-//		if (lastTransferTime == null || lastTransferTime.isEmpty()) {
-//			//M_log.info("default gradedaftertime: {}",speproperties.getGetgrades().get("gradedaftertime"));
-//			M_log.info("persisted gradedaftertime was empty");
-//
-//		//	writeLastGradeTransferTime(speproperties.getGetgrades().get("gradedaftertime"));
-//		//	return readLastGradeTransferTime();
-//			lastTransferTime = readLastGradeTransferTime();
-//		}
-		//return lastTransferTime;
 	}
 
 	// If no time is specified used the current script starting time.
