@@ -46,10 +46,9 @@ public class SPEEsbTest {
 	//public Timeout globalTimeout = Timeout.seconds(10);
 
 
-
 	@Before
 	public void setUp() throws Exception {
-		speesb = new SPEEsbImpl();
+		speesb = new SPEEsbImpl(spesummary);
 	}
 
 	@After
@@ -62,6 +61,9 @@ public class SPEEsbTest {
 
 	@Autowired
 	private SPEProperties speproperties;
+
+	@Autowired
+	private SPESummary spesummary;
 
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbTest.class);
 

@@ -30,6 +30,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import edu.umich.ctools.esb.utils.WAPI;
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
+import edu.umich.its.spe.TestingUtils;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @ContextConfiguration
@@ -43,7 +45,7 @@ public class SPEEsbGETGradesIntegrationTest {
 
 	@Before
 	public void setUp() throws Exception {
-		speesb = new SPEEsbImpl();
+		speesb = new SPEEsbImpl(spesummary);
 	}
 
 	@After
@@ -51,6 +53,9 @@ public class SPEEsbGETGradesIntegrationTest {
 	}
 
 	SPEEsb speesb;
+
+	@Autowired
+	SPESummary spesummary;
 
 	@Autowired
 	SPEProperties speproperties;
@@ -68,6 +73,7 @@ public class SPEEsbGETGradesIntegrationTest {
 
 		List<String> keys = speesb.setupGetGradePropertyValues();
 		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
+
 
 		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(value);
 		M_log.debug("grades: {}",wrappedResult.toJson());
