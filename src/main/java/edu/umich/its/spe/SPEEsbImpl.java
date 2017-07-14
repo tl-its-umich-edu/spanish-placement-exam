@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+
+import org.json.JSONObject;
 
 import org.json.JSONObject;
 
@@ -14,6 +18,7 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import edu.umich.ctools.esb.utils.WAPI;
@@ -27,10 +32,13 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 // Spring: this makes the class discoverable for autowiring.
 @Component
+@Qualifier("ESBIO")
 
-public class SPEEsbImpl implements SPEEsb {
+public class SPEEsbImpl implements GradeIO {
 
 	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
+
+	//protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
 
 	static final Logger M_log = LoggerFactory.getLogger(SPEEsbImpl.class);
 
@@ -58,13 +66,23 @@ public class SPEEsbImpl implements SPEEsb {
 	/**************************
 	 * get grades from data warehouse
 	 *********************/
+
+	protected HashMap<String, String> setupGetGradesCall(SPEProperties speproperties,String gradedAfterTime) {
+		M_log.debug("spe properties: "+speproperties);
+		HashMap<String,String> value = new HashMap<String,String>();
+		value.putAll(speproperties.getIo());
+		value.putAll(speproperties.getGetgrades());
+		value.put("gradedaftertime", gradedAfterTime);
+		return value;
+	}
+
 	// Extend the properties list for the properties that get grade requests
 	// require.
 	public List<String> setupGetGradePropertyValues() {
 
 		List<String> keys = new ArrayList<>(defaultKeys);
 
-		// // add gradedaftertime as a property for testing and defaulting.
+		// add gradedaftertime as a property for testing and defaulting.
 		keys.add("gradedaftertime");
 		keys.add("COURSEID");
 		keys.add("ASSIGNMENTTITLE");
@@ -72,43 +90,46 @@ public class SPEEsbImpl implements SPEEsb {
 		return keys;
 	}
 
+
 	// Go get the SPE grades
 
-	public WAPIResultWrapper getGradesViaESB(HashMap<String, String> value) throws SPEEsbException {
+	public WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
+		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
+		HashMap<String, String> values = setupGetGradesCall(speproperties,gradedAfterTime);
+
 		HashMap<String, String> headers = new HashMap<String, String>();
 
-		headers.put("gradedAfterTime", value.get("gradedaftertime"));
-		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
+		headers.put("gradedAfterTime", values.get("gradedaftertime"));
+		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
 
 		M_log.debug("spesummary: {}",spesummary);
-		spesummary.setCourseId(value.get("COURSEID"));
+		spesummary.setCourseId(values.get("COURSEID"));
 
 		StringBuilder url = new StringBuilder();
 
 		try {
-			url.append(value.get("apiPrefix"))
+			url.append(values.get("apiPrefix"))
 			.append("/Unizin/data/CourseId/")
-			.append(value.get("COURSEID"))
+			.append(values.get("COURSEID"))
 			.append("/AssignmentTitle/")
-			.append(URLEncoder.encode(value.get("ASSIGNMENTTITLE"),"UTF-8"));
-
+			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
-			throw(new SPEEsbException("encoding exception in getGrades",e));
+			throw(new GradeIOException("encoding exception in getGrades",e));
 		}
 
-		M_log.debug("getGrades: value:[" + value.toString() + "]");
+		M_log.debug("getGrades: values:[" + values.toString() + "]");
 		M_log.debug("getGrades: request url: [" + url.toString() + "]");
 		M_log.debug("getGrades: headers: [" + headers.toString() + "]");
 
-		WAPI wapi = new WAPI(value);
+		WAPI wapi = new WAPI(values);
 
 		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
 
 		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
 			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "+wrappedResult.getMessage();
 			M_log.error(msg,wrappedResult.toString());
-			throw(new SPEEsbException(msg));
+			throw(new GradeIOException(msg));
 		}
 
 		M_log.debug(wrappedResult.toJson());
@@ -129,13 +150,34 @@ public class SPEEsbImpl implements SPEEsb {
 		return keys;
 	}
 
+	protected HashMap<String, String> setupPutGradeCall(SPEProperties speproperties,HashMap<?, ?> user) {
+		M_log.debug("spe properties: "+speproperties);
+		M_log.debug("sPGC: user: {}",user);
+
+		HashMap<String,String> value = new HashMap<String,String>();
+		value.putAll(speproperties.getIo());
+
+		// if no user that use default values (for testing).
+		if (user == null || user.isEmpty()) {
+			value.putAll(speproperties.getPutgrades());
+		}
+		else {
+			value.put("SCORE",(String) user.get("Score"));
+			value.put("UNIQNAME",(String) user.get("Unique_Name"));
+		}
+
+		return value;
+	}
+
 	// Put a single grade in MPathways
 
 	@Override
-	public WAPIResultWrapper putGradeViaESB(HashMap<String, String> value) {
+	public WAPIResultWrapper putGradeVia(SPEProperties speproperties,HashMap<?, ?> user) {
 		HashMap<String, String> headers = new HashMap<String, String>();
+		M_log.debug("user to update: " + user.toString());
+		M_log.debug("pGVESB: speproperties: {}",speproperties);
 
-		M_log.info("speproperties for esb: " + value.toString());
+		HashMap<String,String> value = setupPutGradeCall(speproperties,user);
 
 		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
 
@@ -175,9 +217,9 @@ public class SPEEsbImpl implements SPEEsb {
 	// ESB can be reached and do something requiring authorization.
 
 	@Override
-	public boolean verifyESBConnection(HashMap<String, String> value) {
+	public boolean verifyConnection(SPEProperties speproperties) {
 
-		WAPI wapi = new WAPI(value);
+		WAPI wapi = new WAPI(speproperties.getIo());
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
 

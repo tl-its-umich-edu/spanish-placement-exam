@@ -52,7 +52,7 @@ public class SPEEsbGETGradesIntegrationTest {
 	public void tearDown() throws Exception {
 	}
 
-	SPEEsb speesb;
+	GradeIO speesb;
 
 	@Autowired
 	SPESummary spesummary;
@@ -62,6 +62,8 @@ public class SPEEsbGETGradesIntegrationTest {
 
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbGETGradesIntegrationTest.class);
 
+	String aprilFirst = "2017-04-01 18:00:00";
+
 	@Test
 	public void checkPropertiesFile() throws IOException {
 		Properties props = TestingUtils.readTestProperties(speproperties);
@@ -69,13 +71,10 @@ public class SPEEsbGETGradesIntegrationTest {
 	}
 
 	@Test
-	public void getGradesTest() throws IOException, SPEEsbException {
+	public void getGradesTest() throws IOException, GradeIOException {
 
-		List<String> keys = speesb.setupGetGradePropertyValues();
-		HashMap<String,String> value = WAPI.getPropertiesWithKeys(TestingUtils.readTestProperties(speproperties), keys);
+		WAPIResultWrapper wrappedResult = speesb.getGradesVia(speproperties,aprilFirst);
 
-
-		WAPIResultWrapper wrappedResult = speesb.getGradesViaESB(value);
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;

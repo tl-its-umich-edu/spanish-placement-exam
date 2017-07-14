@@ -45,7 +45,7 @@ public class SPEMaster {
 
 	// Let Spring inject the properties, the esb service, and the persistString implementation.
 	@Autowired
-	private SPEEsb speesb;
+	private GradeIO gradeio;
 
 	@Autowired
 	private PersistBlob persistString;
@@ -100,7 +100,7 @@ public class SPEMaster {
 
 	/* Organize the task and handle errors */
 
-	public void orchestrator () throws PersistBlobException, SPEEsbException {
+	public void orchestrator () throws PersistBlobException, GradeIOException {
 
 		M_log.info("Start SPE orchestrator");
 
@@ -110,18 +110,20 @@ public class SPEMaster {
 
 		if (!verifyESB()) {
 			M_log.error("Unable to connect to esb");
-			throw new SPEEsbException("Unable to connect to ESB");
+			throw new GradeIOException("Unable to connect to ESB");
 		}
 
 		//// Get the relevant grades.
 		String lastUpdateTime = readLastGradeTransferTime();
-		M_log.error("fake lastUpdateTime");
-		lastUpdateTime = "2017-03-08 15:38:21";
+		//lastUpdateTime = "2017-03-08 15:38:21";
+		lastUpdateTime = "2017-07-11 15:38:21";
+		M_log.error("fake lastUpdateTime: {}",lastUpdateTime);
+
 		M_log.info("lastUpdateTime: {}",lastUpdateTime);
 		String assignmentsFromDW;
 
 		try {
-			assignmentsFromDW = getSPEGrades(lastUpdateTime);
+			assignmentsFromDW = getSPEGrades(speproperties,lastUpdateTime);
 
 			//// Extract grades from JSON the grades for insertion
 
@@ -136,7 +138,7 @@ public class SPEMaster {
 			M_log.info("Grade count since {} is {}.",lastUpdateTime,SPEgradeMaps.size());
 			putSPEGrades(SPEgradeMaps);
 
-		} catch (SPEEsbException e1) {
+		} catch (GradeIOException e1) {
 			M_log.error("Exception processing SPE grades:",e1);
 		}
 		finally {
@@ -162,15 +164,12 @@ public class SPEMaster {
 	protected HashMap<String, String> setupESBVerifyCall() {
 		//M_log.debug("spe properties: "+speproperties);
 		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
+		value.putAll(speproperties.getIo());
 		return value;
 	}
 
 	public Boolean verifyESB() {
-		// TODO: implement verify by renewing access token.
-		M_log.error("verify is not yet used by SPEMaster");
-		HashMap<String,String> value = setupESBVerifyCall();
-		return speesb.verifyESBConnection(value);
+		return gradeio.verifyConnection(speproperties);
 	}
 
 	/*************** get grades via ESB **************/
@@ -178,14 +177,6 @@ public class SPEMaster {
 	/*
 	 * Setup the hash of values needed for the call to get grades.
 	 */
-	protected HashMap<String, String> setupGetGradesCall(String gradedAfterTime) {
-		M_log.debug("spe properties: "+speproperties);
-		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
-		value.putAll(speproperties.getGetgrades());
-		value.put("gradedaftertime", gradedAfterTime);
-		return value;
-	}
 
 	/*
 	 * Get grades as JSON string.  Only grades after the gradeAfterTime
@@ -194,12 +185,11 @@ public class SPEMaster {
 	 * TODO: timestamp default value?
 	 */
 
-	public String getSPEGrades(String gradedAfterTime) throws SPEEsbException {
+	public String getSPEGrades(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 
 		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
-		HashMap<String, String> values = setupGetGradesCall(gradedAfterTime);
+		WAPIResultWrapper grades = gradeio.getGradesVia(speproperties,gradedAfterTime);
 
-		WAPIResultWrapper grades = speesb.getGradesViaESB(values);
 		// check for possibility of no new grades.
 		if (grades.getStatus() == HttpStatus.SC_NOT_FOUND) {
 			return "[]";
@@ -246,10 +236,18 @@ public class SPEMaster {
 
 	// convert a single JSON version of an assignment to a grademap.
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
-		HashMap<String,String> grademap = new HashMap<String,String>();
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
-		grademap.put("Score",JSONObject.valueToString(assignment.get("Score")));
-		grademap.put("Unique_Name", assignment.getString("Unique_Name"));
+		String score = JSONObject.valueToString(assignment.get("Score"));
+		String unique_name = assignment.getString("Unique_Name");
+
+		return createGradeMap(score, unique_name);
+	}
+
+	public static HashMap<String, String> createGradeMap(String score, String unique_name) {
+		HashMap<String,String> grademap = new HashMap<String,String>();
+
+		grademap.put("Score",score);
+		grademap.put("Unique_Name", unique_name);
 		return grademap;
 	}
 
@@ -276,21 +274,6 @@ public class SPEMaster {
 	/*
 	 * Setup the hash of values needed for the call to get grades.
 	 */
-
-	protected HashMap<String, String> setupPutGradeCall(HashMap<?, ?> user) {
-		M_log.debug("spe properties: "+speproperties);
-		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
-		// if no user that use default values (for testing).
-		if (user == null || user.isEmpty()) {
-			value.putAll(speproperties.getPutgrades());
-		}
-		else {
-			value.put("SCORE",(String) user.get("Score"));
-			value.put("UNIQNAME",(String) user.get("Unique_Name"));
-		}
-		return value;
-	}
 
 	//{"Meta":{"Message":"COMPLETED","httpStatus":200},"Result":{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"},"@schemaLocation":"http://mais.he.umich.edu/schemas/putPlcExamScoreResponse.v1 http://csqa9ib.dsc.umich.edu/PSIGW/PeopleSoftServiceListeningConnector/putPlcExamScoreResponse.v1.xsd"}}}
 
@@ -329,20 +312,19 @@ public class SPEMaster {
 
 	// Send a single grade to MPathways.
 	public boolean putSPEGrade(HashMap<?, ?> user) {
-		HashMap<String,String> value = setupPutGradeCall(user);
 		boolean success = false;
 
-		WAPIResultWrapper wrappedResult = speesb.putGradeViaESB(value);
+		WAPIResultWrapper wrappedResult = gradeio.putGradeVia(speproperties,user);
 
-		M_log.debug("update: {}",wrappedResult.toJson());
+		M_log.info("update: {}",wrappedResult.toJson());
 
 		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
 			success = true;
 		}
 
-		spesummary.appendUser(value.get("UNIQNAME"), success);
-		M_log.error("error updating grade: "+wrappedResult.toJson());
+		spesummary.appendUser((String) user.get("Unique_Name"), success);
+		M_log.info("grade update response: "+wrappedResult.toJson());
 		return success;
 	}
 
@@ -381,7 +363,7 @@ public class SPEMaster {
 	}
 
 	// Compute a reasonable last grade transfer time.
-	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistBlobException, SPEEsbException {
+	protected String ensureLastGradeTransferTime(String lastTransferTime) throws PersistBlobException, GradeIOException {
 
 		String useTransferTime;
 
@@ -392,8 +374,8 @@ public class SPEMaster {
 			return useTransferTime;
 		}
 
+		M_log.error("transfer time logic is wrong");
 		// if a time was saved use that.
-		//useTransferTime = readLastGradeTransferTime();
 		if (useTransferTime != null && useTransferTime.length() > 0) {
 			return useTransferTime;
 		}
@@ -405,7 +387,7 @@ public class SPEMaster {
 		}
 
 		M_log.error("Can not determine last graded time");
-		throw  new SPEEsbException("Can not determine last graded time");
+		throw  new GradeIOException("Can not determine last graded time");
 
 	}
 
