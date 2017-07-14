@@ -61,7 +61,7 @@ public class FileIO implements GradeIO {
 			throw new GradeIOException("FileIO Call invalid: speproperties: "+ speproperties+" gradedAfterTime: "+gradedAfterTime);
 		}
 
-		HashMap<String,String> ioProperties = speproperties.getEsb();
+		HashMap<String,String> ioProperties = speproperties.getIo();
 		String fileName = SPEUtils.safeGetPropertyValue(ioProperties,"getGradeIO");
 
 		File file = new File(fileName);
@@ -93,7 +93,7 @@ public class FileIO implements GradeIO {
 		M_log.debug("putGrade FileIO: properties: {} gradedAfterTime: {}",speproperties,user);
 		String success_msg = "wrote user";
 
-		HashMap<String,String> ioProperties = speproperties.getEsb();
+		HashMap<String,String> ioProperties = speproperties.getIo();
 		String fileName = SPEUtils.safeGetPropertyValue(ioProperties,"putGradeIO");
 		M_log.info("putGrade: updated {} for user: {}",fileName,user.toString());
 		File file = new File(fileName);

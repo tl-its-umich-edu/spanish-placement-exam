@@ -66,7 +66,7 @@ public class SPEEsbImpl implements GradeIO {
 	protected HashMap<String, String> setupGetGradesCall(SPEProperties speproperties,String gradedAfterTime) {
 		M_log.debug("spe properties: "+speproperties);
 		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
+		value.putAll(speproperties.getIo());
 		value.putAll(speproperties.getGetgrades());
 		value.put("gradedaftertime", gradedAfterTime);
 		return value;
@@ -152,7 +152,7 @@ public class SPEEsbImpl implements GradeIO {
 		M_log.debug("sPGC: user: {}",user);
 
 		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
+		value.putAll(speproperties.getIo());
 
 		// if no user that use default values (for testing).
 		if (user == null || user.isEmpty()) {
@@ -216,7 +216,7 @@ public class SPEEsbImpl implements GradeIO {
 	@Override
 	public boolean verifyConnection(SPEProperties speproperties) {
 
-		WAPI wapi = new WAPI(speproperties.getEsb());
+		WAPI wapi = new WAPI(speproperties.getIo());
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
 

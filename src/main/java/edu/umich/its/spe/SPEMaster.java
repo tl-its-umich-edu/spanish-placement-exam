@@ -164,7 +164,7 @@ public class SPEMaster {
 	protected HashMap<String, String> setupESBVerifyCall() {
 		//M_log.debug("spe properties: "+speproperties);
 		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getEsb());
+		value.putAll(speproperties.getIo());
 		return value;
 	}
 

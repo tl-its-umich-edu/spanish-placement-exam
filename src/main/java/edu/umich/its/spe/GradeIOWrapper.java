@@ -57,7 +57,7 @@ public class GradeIOWrapper implements GradeIO {
 		M_log.info("setting up GradeIOWrapper");
 		M_log.info("speproperties: {}",speproperties);
 
-		HashMap<String,String> testproperties = speproperties.getEsb();
+		HashMap<String,String> testproperties = speproperties.getIo();
 
 		String getGradeIOProperty = SPEUtils.safeGetPropertyValue(testproperties,"getGradeIO");
 		if (getGradeIOProperty.length() == 0 || "ESBIO".equals(getGradeIOProperty.toUpperCase())) {

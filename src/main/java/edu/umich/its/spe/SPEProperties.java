@@ -27,7 +27,7 @@ import lombok.Data;
 
 @Data
 public class SPEProperties {
-	private HashMap<String,String> esb;
+	private HashMap<String,String> io;
 	private HashMap<String,String> persist;
 	private HashMap<String,String> getgrades;
 	private HashMap<String,String> putgrades;

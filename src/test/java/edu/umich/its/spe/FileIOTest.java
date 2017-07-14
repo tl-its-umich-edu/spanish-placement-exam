@@ -125,7 +125,7 @@ public class FileIOTest {
 
 		// add property value to esb properties
 		String esbPropertyName = "getGradeIO";
-		props.setEsb(setSPEProperty(props.getEsb(),esbPropertyName, fullFileName));
+		props.setIo(setSPEProperty(props.getIo(),esbPropertyName, fullFileName));
 
 		WAPIResultWrapper wrapper = FileIO.getGradesFileStatic(props,date20170401);
 
@@ -243,7 +243,7 @@ public class FileIOTest {
 
 		// add property value to esb properties
 		String esbPropertyName = "putGradeIO";
-		props.setEsb(setSPEProperty(props.getEsb(),esbPropertyName, fullFileName));
+		props.setIo(setSPEProperty(props.getIo(),esbPropertyName, fullFileName));
 
 		writeUserGradeToFile(props,"1", "barney");
 
@@ -268,7 +268,7 @@ public class FileIOTest {
 
 		// add property value to esb properties
 		String esbPropertyName = "putGradeIO";
-		props.setEsb(setSPEProperty(props.getEsb(),esbPropertyName, fullFileName));
+		props.setIo(setSPEProperty(props.getIo(),esbPropertyName, fullFileName));
 
 		HashMap<?, ?> user;
 

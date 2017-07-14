@@ -13,7 +13,7 @@ public class TestingUtils {
 	static public Properties readTestProperties(SPEProperties speproperties) {
 		Properties props = new Properties();
 		props.putAll(speproperties.getPersist());
-		props.putAll(speproperties.getEsb());
+		props.putAll(speproperties.getIo());
 		props.putAll(speproperties.getGetgrades());
 		props.putAll(speproperties.getPutgrades());
 		props.putAll(speproperties.getTest());
