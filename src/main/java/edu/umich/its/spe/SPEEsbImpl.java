@@ -11,6 +11,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import org.json.JSONObject;
+
 import org.apache.http.HttpStatus;
 
 import org.slf4j.Logger;
@@ -35,6 +37,8 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 public class SPEEsbImpl implements GradeIO {
 
 	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
+
+	//protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
 
 	static final Logger M_log = LoggerFactory.getLogger(SPEEsbImpl.class);
 
@@ -109,7 +113,6 @@ public class SPEEsbImpl implements GradeIO {
 			.append(values.get("COURSEID"))
 			.append("/AssignmentTitle/")
 			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8"));
-
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
 			throw(new GradeIOException("encoding exception in getGrades",e));

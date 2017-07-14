@@ -74,6 +74,7 @@ public class SPEEsbGETGradesIntegrationTest {
 	public void getGradesTest() throws IOException, GradeIOException {
 
 		WAPIResultWrapper wrappedResult = speesb.getGradesVia(speproperties,aprilFirst);
+
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
 		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;
