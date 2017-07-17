@@ -50,7 +50,7 @@ public class PersistBlobImpl implements PersistBlob {
 
 		log.info("PS constructor string: "+path);
 		this.path = path;
-		this.full_file_name = path+persistant_file_name;
+		this.full_file_name = path+"/"+persistant_file_name;
 
 		// Make sure the file can be used and has at least a trivial value.
 
