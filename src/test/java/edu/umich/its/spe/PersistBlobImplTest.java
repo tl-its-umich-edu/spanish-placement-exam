@@ -4,9 +4,6 @@ import static org.junit.Assert.*;
 
 import java.time.Instant;
 
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +39,7 @@ public class PersistBlobImplTest {
 		return Instant.now().toString();
 	}
 
-	/********************************/
+	/** @throws IOException **************************/
 	/* constructor tests */
 
 	@Test
@@ -51,42 +48,43 @@ public class PersistBlobImplTest {
 		new PersistBlobImpl(tmpFolder);
 	}
 
+	@Test
+	public void testAbsolutePathNewFolder() throws PersistBlobException {
+		String tmpNewFolder = tempFolder.getRoot().toString()+"/newFolder";
+		new PersistBlobImpl(tmpNewFolder);
+	}
+
+	@Test
+	public void testAbsolutePathNewNestedFolders() throws PersistBlobException {
+		String tmpNewFolder = tempFolder.getRoot().toString()+"/newFolder/level1/level2";
+		new PersistBlobImpl(tmpNewFolder);
+	}
+
+	@Test
+	public void testAbsolutePathExistingFolder() throws PersistBlobException {
+		String tmpNewFolder = tempFolder.getRoot().toString()+"/newFolder/level1/level2";
+		// make it.
+		new PersistBlobImpl(tmpNewFolder);
+		// make it again.
+		new PersistBlobImpl(tmpNewFolder);
+	}
+
 	@Test(expected=PersistBlobException.class)
 	public void testRelativePath() throws PersistBlobException {
 		new PersistBlobImpl("here/is/an/unreasonable/path");
 	}
 
-	@Test(expected=PersistBlobException.class)
-	public void testAbsolutePathBadFolder() throws PersistBlobException {
-		String tmpFolder = tempFolder.getRoot().toString();
-		new PersistBlobImpl(tmpFolder+".XXX");
-	}
-
-
 	/**********************************/
 	/* IO tests */
 
-	/******** fail (with exception) */
-
-	@Test(expected=PersistBlobException.class)
-	public void testWriteStringBadPath() throws PersistBlobException {
-		ps = new PersistBlobImpl("/tmp/test/here");
-		ps.writeBlob("test string: "+timeStamp());
-	}
+	/******** fail (with exception) @throws IOException */
 
 	@Test(expected=PersistBlobException.class)
 	public void testWriteNullStringFAIL() throws PersistBlobException {
 		ps.writeBlob(null);
 	}
 
-//	@Test(expected=PersistStringException.class)
-//	public void testReadMissingStringFAIL() throws PersistStringException {
-//			String s = ps.readString();
-//			assertNull("no string r",s);
-//	}
-
-
-	/********* pass */
+	/********* pass ***********/
 
 	@Test
 	public void testWriteStringGoodPath() throws PersistBlobException {

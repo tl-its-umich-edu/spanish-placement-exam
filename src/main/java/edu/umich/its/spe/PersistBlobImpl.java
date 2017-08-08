@@ -2,8 +2,15 @@ package edu.umich.its.spe;
 
 import java.io.File;
 import java.io.IOException;
+
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
@@ -23,6 +30,7 @@ import org.slf4j.LoggerFactory;
 /*
  * For initial implementation the path will be an absolute disk directory path.
  * Only the directory path is required.  The internal file name is supplied automatically.
+ * The directory will be created if it doesn't exist.
  *
  * Future implementations may be more powerful when more power is required.
  *
@@ -45,6 +53,9 @@ public class PersistBlobImpl implements PersistBlob {
 	String persistant_file_name = "persisted.txt";
 	String full_file_name = "";
 
+	// If need to create directories use these permissions.
+	String directoryPerms = "rwxr-xr-x";
+
 	// Path passed in must be an absolute disk path to avoid problems finding the location.
 	public PersistBlobImpl(String path) throws PersistBlobException {
 
@@ -58,8 +69,9 @@ public class PersistBlobImpl implements PersistBlob {
 			throw new PersistBlobException("Path provided must be an absolute path.");
 		}
 
+		// if directory doesn't exist then try to make it.
 		if (Files.notExists(Paths.get(path))) {
-			throw new PersistBlobException("Path does not exist: ["+path+"]");
+			handleMissingDirectory(path);
 		}
 
 		if (!Files.isWritable(Paths.get(path))) {
@@ -69,6 +81,19 @@ public class PersistBlobImpl implements PersistBlob {
 		if (Files.notExists(Paths.get(full_file_name))) {
 			writeBlob("");
 		}
+	}
+
+	// Make directories if necessary
+	public void handleMissingDirectory(String path_string) throws PersistBlobException {
+		Path path = Paths.get(path_string);
+		Set<PosixFilePermission> perms = PosixFilePermissions.fromString(directoryPerms);
+		FileAttribute<Set<PosixFilePermission>> attr =	PosixFilePermissions.asFileAttribute(perms);
+		try {
+			Files.createDirectories(path, attr);
+		} catch (IOException e) {
+			throw new PersistBlobException("Unable to create path: ["+path+"]",e);
+		}
+		log.info("PersistBlobImpl: created directory: {}",path_string);
 	}
 
 	// Read the string for this path.
