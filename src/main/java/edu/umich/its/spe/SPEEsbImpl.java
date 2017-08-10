@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-
-import org.json.JSONObject;
 
 import org.json.JSONObject;
 
@@ -38,8 +34,6 @@ public class SPEEsbImpl implements GradeIO {
 
 	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
 
-	//protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
-
 	static final Logger M_log = LoggerFactory.getLogger(SPEEsbImpl.class);
 
 	@Autowired
@@ -52,7 +46,7 @@ public class SPEEsbImpl implements GradeIO {
 	}
 
 	// Constructor that allows injecting summary object.  That can
-	// be useful in testing when don't want to automatically start application.
+	// be useful in testing when don't want to require using Spring injection.
 
 	public SPEEsbImpl(SPESummary spesummary) {
 		super();
@@ -102,7 +96,6 @@ public class SPEEsbImpl implements GradeIO {
 		headers.put("gradedAfterTime", values.get("gradedaftertime"));
 		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
 
-		M_log.debug("spesummary: {}",spesummary);
 		spesummary.setCourseId(values.get("COURSEID"));
 
 		StringBuilder url = new StringBuilder();
@@ -132,7 +125,11 @@ public class SPEEsbImpl implements GradeIO {
 			throw(new GradeIOException(msg));
 		}
 
-		M_log.debug(wrappedResult.toJson());
+		if(M_log.isDebugEnabled()) {
+			M_log.debug(wrappedResult.toJson());
+			M_log.debug("spesummary: {}",spesummary);
+		}
+
 		return wrappedResult;
 	}
 
@@ -175,7 +172,6 @@ public class SPEEsbImpl implements GradeIO {
 	public WAPIResultWrapper putGradeVia(SPEProperties speproperties,HashMap<?, ?> user) {
 		HashMap<String, String> headers = new HashMap<String, String>();
 		M_log.debug("user to update: " + user.toString());
-		M_log.debug("pGVESB: speproperties: {}",speproperties);
 
 		HashMap<String,String> value = setupPutGradeCall(speproperties,user);
 
@@ -197,14 +193,16 @@ public class SPEEsbImpl implements GradeIO {
 
 		// For testing allow skipping update of MPathways
 		/// check for not true.
-		M_log.debug("skipiGradeUpdate: {}",value.get("skipGradeUpdate"));
-		if (value.get("skipGradeUpdate") == null || !"true".equals(value.get("skipGradeUpdate").toLowerCase())) {
-			wrappedResult = wapi.doPutRequest(url.toString(), headers);
-		} else {
-			String msg = "{error: " + SKIP_GRADE_UPDATE + " for " + value.get("UNIQNAME") + "}";
-			M_log.error("skip msg: " + msg);
-			wrappedResult = new WAPIResultWrapper(WAPI.HTTP_UNKNOWN_ERROR, SKIP_GRADE_UPDATE, new JSONObject(msg));
-		}
+//		M_log.debug("skipiGradeUpdate: {}",value.get("skipGradeUpdate"));
+//		if (value.get("skipGradeUpdate") == null || !"true".equals(value.get("skipGradeUpdate").toLowerCase())) {
+//			wrappedResult = wapi.doPutRequest(url.toString(), headers);
+//		} else {
+//			String msg = "{error: " + SKIP_GRADE_UPDATE + " for " + value.get("UNIQNAME") + "}";
+//			M_log.error("skip msg: " + msg);
+//			wrappedResult = new WAPIResultWrapper(WAPI.HTTP_UNKNOWN_ERROR, SKIP_GRADE_UPDATE, new JSONObject(msg));
+//		}
+
+		wrappedResult = wapi.doPutRequest(url.toString(), headers);
 
 		M_log.info(wrappedResult.toJson());
 

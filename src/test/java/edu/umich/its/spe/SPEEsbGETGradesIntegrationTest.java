@@ -39,6 +39,8 @@ import edu.umich.its.spe.TestingUtils;
 
 public class SPEEsbGETGradesIntegrationTest {
 
+	private static Logger M_log = LoggerFactory.getLogger(SPEEsbGETGradesIntegrationTest.class);
+
 	// Apply a global timeout to all tests.  Comment out when debugging a test.
     //@Rule
     //public Timeout globalTimeout = Timeout.seconds(10);
@@ -60,23 +62,20 @@ public class SPEEsbGETGradesIntegrationTest {
 	@Autowired
 	SPEProperties speproperties;
 
-	private static Logger M_log = LoggerFactory.getLogger(SPEEsbGETGradesIntegrationTest.class);
-
 	String aprilFirst = "2017-04-01 18:00:00";
-
-	@Test
-	public void checkPropertiesFile() throws IOException {
-		Properties props = TestingUtils.readTestProperties(speproperties);
-		assertNotNull(props);
-	}
 
 	@Test
 	public void getGradesTest() throws IOException, GradeIOException {
 
-		WAPIResultWrapper wrappedResult = speesb.getGradesVia(speproperties,aprilFirst);
-
+		M_log.debug("speproperties: {}",speproperties);
+		String useDate = speproperties.getGetgrades().get("gradedaftertime");
+		if (useDate == null) {
+			useDate = aprilFirst;
+		}
+		WAPIResultWrapper wrappedResult = speesb.getGradesVia(speproperties,useDate);
 		M_log.debug("grades: {}",wrappedResult.toJson());
 		assertNotNull("non-null result",wrappedResult);
+
 		Boolean callOk = wrappedResult.getStatus() == HttpStatus.SC_OK || wrappedResult.getStatus() == HttpStatus.SC_NOT_FOUND;
 		assertEquals("successful call",callOk, true);
 	}

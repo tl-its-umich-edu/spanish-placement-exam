@@ -71,8 +71,8 @@ public class SPESummary {
 		 //System.out.println("start: "+startTime+" end: "+endTime+" duration: "+DurationFormatUtils.formatDurationHMS(dur.toMillis()));
 
 
-		result.append("starting time: ").append(SPEMaster.formatTimestamp(startTime)).append(LINE_RETURN);
-		result.append("end time: ").append(SPEMaster.formatTimestamp(endTime)).append(LINE_RETURN);
+		result.append("starting time: ").append(PersistTimestamp.formatTimestamp(startTime)).append(LINE_RETURN);
+		result.append("end time: ").append(PersistTimestamp.formatTimestamp(endTime)).append(LINE_RETURN);
 		result.append("elapsed time: ").append(DurationFormatUtils.formatDurationHMS(dur.toMillis())).append(LINE_RETURN);
 
 		result.append("storedGradesLastRetrieved: ").append(storedGradesLastRetrieved.toString()).append(LINE_RETURN);
