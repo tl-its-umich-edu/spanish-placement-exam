@@ -105,7 +105,8 @@ public class SPEEsbImpl implements GradeIO {
 			.append("/Unizin/data/CourseId/")
 			.append(values.get("COURSEID"))
 			.append("/AssignmentTitle/")
-			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8"));
+			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8").replaceAll("\\+", "%20")
+					);
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
 			throw(new GradeIOException("encoding exception in getGrades",e));
