@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,7 +66,9 @@ public class SPEMasterProcessGradeTest {
 	public void testConvertAssignmentBToGradeMap() throws JSONException {
 		JSONObject jo = new JSONObject(assignmentJSON_B);
 		HashMap<String, String> gradeMap = SPEMaster.convertAssignmentToGradeMap(jo);
-		assertEquals("score:","1320",gradeMap.get("Score"));
+		String score = gradeMap.get("Score");
+		assertTrue("score requires 1 decimal place: ["+score+"]",SPEMaster.scoreRegexPattern.matcher(score).matches());
+		assertEquals("score:","1320.0",score);
 		assertEquals("uniqname:","studentd",gradeMap.get("Unique_Name"));
 	}
 
@@ -157,5 +161,4 @@ public class SPEMasterProcessGradeTest {
 //			"Unique_Name": "zewang"
 //		}]
 //	}
-//}
 //}
