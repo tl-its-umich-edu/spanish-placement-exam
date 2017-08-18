@@ -100,6 +100,8 @@ public class SPEEsbImpl implements GradeIO {
 
 		StringBuilder url = new StringBuilder();
 
+		// Assignment Title may contain blanks.  URLEncoder will form encode them as "+" but
+		// since the title ends up in the URL proper it must be fixed up to be % encoded.
 		try {
 			url.append(values.get("apiPrefix"))
 			.append("/Unizin/data/CourseId/")
