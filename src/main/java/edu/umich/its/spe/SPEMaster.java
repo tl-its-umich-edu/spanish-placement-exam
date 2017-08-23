@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -58,6 +59,10 @@ public class SPEMaster {
 
 	@Autowired
 	private SPESummary spesummary;
+    
+	// Pattern to detect if score is in right format.
+	public static Pattern scoreRegexPattern = Pattern.compile("^\\d\\d\\d\\d\\.\\d$");
+
 
 	public SPEMaster() {
 		super();
@@ -240,6 +245,13 @@ public class SPEMaster {
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
 		String score = JSONObject.valueToString(assignment.get("Score"));
+
+		// Some scores don't have decimal places.  They all should.  Assuming that missing decimal place
+		// because of formatting as a number somewhere.
+		if (!scoreRegexPattern.matcher(score).matches()) {
+			score += ".0";
+		}
+
 		String unique_name = assignment.getString("Unique_Name");
 
 		return createGradeMap(score, unique_name);
