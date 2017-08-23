@@ -3,7 +3,8 @@ FROM openjdk:8u131-jdk
 
 ## install the configuration files
 RUN mkdir -p /opt/spe/config 
-ADD config /opt/spe/config
+ADD config/*properties /opt/spe/config/
+ADD config/*yml /opt/spe/config/
 
 # copy over jar file with standard name.
 COPY *.jar /opt/spe/spe.jar
@@ -26,7 +27,10 @@ WORKDIR /opt/spe
 
 #--spring.profiles.active=development
 
-#CMD ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","-Dtest.skipRun=false"]
-CMD ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","--test.skipRun=false"]
+RUN find /opt/spe/config -ls
 
+#CMD ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","-Dtest.skipRun=false"]
+#CMD ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","--test.skipRun=false"]
+ENTRYPOINT ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","--test.skipRun=false"]
+#CMD ["bash"]
 #end
