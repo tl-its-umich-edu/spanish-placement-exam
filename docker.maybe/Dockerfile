@@ -5,32 +5,33 @@ FROM openjdk:8u131-jdk
 RUN mkdir -p /opt/spe/config 
 ADD config/*properties /opt/spe/config/
 ADD config/*yml /opt/spe/config/
+ADD config/*json /opt/spe/config/
+
+RUN find /opt/spe/config -ls
 
 # copy over jar file with standard name.
 COPY *.jar /opt/spe/spe.jar
 RUN chmod +x /opt/spe/*jar
 
-# make the persist string location 
-RUN mkdir -p /tmp/persist_string
+RUN mkdir -p -v /var/log/spe
+RUN mkdir -p -v /tmp/persist_string
 
-#-Djava.security.egd=file:/dev/./urandom -Dtest.skipRun=false -Dspring.profiles.include=DBG,FILEIO,INTEGRATION
-
-# Debugging
-#RUN pwd
-#RUN find /opt -ls 
-#RUN java -version
+#RUN find /tmp -ls
+#RUN find /var/log -ls
 
 ### set default command to be the jar. 
 WORKDIR /opt/spe
-#CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/opt/spe/spe.jar"]
-#CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/opt/spe/spe.jar","spring.profiles.include=DBG,FILEIO","-Dtest.skipRun=false"]
 
-#--spring.profiles.active=development
+# set entry point so can add arguments from "docker run" on command line.
+# EX: If start with:
+# docker run -e TZ=America/New_York spe_a --spring.profiles.include=ZOMBIE
+# ZOMBIE will be ADDED to the list of spring profiles to include.
 
-RUN find /opt/spe/config -ls
+# 
+ENTRYPOINT ["java", "-jar","/opt/spe/spe.jar", \
+            "-Djava.security.egd=file:/dev/./urandom", \
+            "--test.skipRun=false", \
+            "--spring.profiles.include=DBG,FILEIO"\
+            ]
 
-#CMD ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","-Dtest.skipRun=false"]
-#CMD ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","--test.skipRun=false"]
-ENTRYPOINT ["java", "-jar","/opt/spe/spe.jar", "-Djava.security.egd=file:/dev/./urandom","--spring.profiles.include=DBG,FILEIO","--test.skipRun=false"]
-#CMD ["bash"]
 #end
