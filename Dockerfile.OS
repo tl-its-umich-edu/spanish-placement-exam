@@ -26,7 +26,7 @@ COPY . /tmp
 RUN mvn clean package -D maven.test.skip=true
 
 #RUN find /tmp -name spanish-placement-exams-0.1.0.jar -ls
-RUN find / -name a\*properties
+#RUN find / -name a\*properties
 
 #RUN df -h /
 #RUN du -sh ~/.m2
