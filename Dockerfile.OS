@@ -50,8 +50,11 @@ RUN mv /tmp/target/spanish*jar /opt/spe/bin/spe.jar
 
 #RUN find /tmp -ls
 
+#RUN find /tmp/config -ls
+
 RUN mkdir -p /opt/spe/config
 WORKDIR /tmp/config
+RUN ls -l /tmp/config
 RUN cp /tmp/config/*properties /opt/spe/config/
 RUN cp /tmp/config/*yml /opt/spe/config/
 RUN cp /tmp/config/*json /opt/spe/config/
