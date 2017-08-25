@@ -26,6 +26,7 @@ COPY . /tmp
 RUN mvn clean package -D maven.test.skip=true
 
 #RUN find /tmp -name spanish-placement-exams-0.1.0.jar -ls
+RUN find / -name a\*properties
 
 #RUN df -h /
 #RUN du -sh ~/.m2
@@ -44,12 +45,16 @@ RUN mv /tmp/target/spanish*jar /opt/spe/bin/spe.jar
 
 #RUN find /opt/spe -ls
 
-####### NOTE: security files will be secrets
+####### NOTE: security files will handled as OS secrets
 ## install the configuration files
-RUN mkdir -p /opt/spe/config 
-ADD config/*properties /opt/spe/config/
-ADD config/*yml /opt/spe/config/
-ADD config/*json /opt/spe/config/
+
+#RUN find /tmp -ls
+
+RUN mkdir -p /opt/spe/config
+WORKDIR /tmp
+COPY config/*properties /opt/spe/config/
+COPY config/*yml /opt/spe/config/
+COPY config/*json /opt/spe/config/
 
 # ### set default command to be the SPE jar.
 WORKDIR /opt/spe
