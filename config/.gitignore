@@ -1,4 +1,6 @@
 # prevent checking in real files.
-*.yml
-*.properties
+#*.yml
+#*.properties
+security.*properties
+security.*yml
 #end

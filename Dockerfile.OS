@@ -57,7 +57,7 @@ WORKDIR /tmp/config
 RUN ls -l /tmp/config
 RUN cp /tmp/config/*properties /opt/spe/config/
 RUN cp /tmp/config/*yml /opt/spe/config/
-RUN cp /tmp/config/*json /opt/spe/config/
+#RUN cp /tmp/config/*json /opt/spe/config/
 
 #COPY config/*properties /opt/spe/config/
 #COPY config/*yml /opt/spe/config/
