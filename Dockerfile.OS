@@ -51,10 +51,14 @@ RUN mv /tmp/target/spanish*jar /opt/spe/bin/spe.jar
 #RUN find /tmp -ls
 
 RUN mkdir -p /opt/spe/config
-WORKDIR /tmp
-COPY config/*properties /opt/spe/config/
-COPY config/*yml /opt/spe/config/
-COPY config/*json /opt/spe/config/
+WORKDIR /tmp/config
+RUN cp /tmp/config/*properties /opt/spe/config/
+RUN cp /tmp/config/*yml /opt/spe/config/
+RUN cp /tmp/config/*json /opt/spe/config/
+
+#COPY config/*properties /opt/spe/config/
+#COPY config/*yml /opt/spe/config/
+#COPY config/*json /opt/spe/config/
 
 # ### set default command to be the SPE jar.
 WORKDIR /opt/spe
