@@ -7,12 +7,16 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+            labels:
+              parent: "speCronJob"
         spec:
           containers:
-          - name: hello
-            image: busybox
+          - name: spedev-image-test
+            image: 172.30.183.221:5000/spanish-placement-exam-dev/spanish-placement-exam:latest
             args:
             - /bin/sh
             - -c
-            - date; echo Hello from the Kubernetes cluster
+            - date; echo HI This is testing SPEDev cron jobs.
           restartPolicy: OnFailure
+comment: HOWDY I AM TESTING COMMENTS.

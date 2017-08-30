@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+# this value should be different when running script again, as each time a script is run a new Pod is created
+  name: POD_NAME
+spec:
+  containers:
+  - name: barepod
+  # Docker image name
+    image: 172.30.183.221:5000/spanish-placement-exam-dev/spanish-placement-exam
+#    command: ["/bin/sh -c date; echo HI This is testing SPEDev pod-batch.yaml."]
+    env:
+    # the below 2 are environmental variables in Open Shift
+    - name: COURSE_ID
+      value: "6"
+    - name: CATEGORY_NAME
+      value: "Seven"
+#    volumeMounts:
+    # name must match the volume name below
+    #- name: secret-volume
+    - name: local-volume
+    # the data properties(i.e., canvas_token) in the secrets.yaml will be stored in that path.
+      mountPath: /opt/spe
+  restartPolicy: Never
+  volumes:
+  - name: local-volume
+#    secret:
+#    # the "secretName" should match the "name" attribute in the secrets.yaml.
+#    # you can have as many secrets files, to link the secrets while running the batch script this property is useful
+#      secretName: dev-secrets

@@ -8,6 +8,8 @@ set -e
 
 echo "$0: build spanish placement exam docker image."
 
+echo "dir: $(PWD)"
+
 # This is OSX. May need to reset based on the build environment.
 MVN=/usr/local/bin/mvn
 DOCKER=/usr/local/bin/docker
@@ -21,13 +23,16 @@ echo ">>>>>>> FIX BUG <<<<<<<< Should not skip unit tests."
 TEMP_ARGS=" -D maven.test.skip=true "
 
 # build the war file
-(cd ..;
+(
+#    cd ..;
  echo "mvn clean package ${PROFILES} ${TEMP_ARGS}"
  ${MVN} clean package ${PROFILES} ${TEMP_ARGS}
 )
 
 # copy configuration to build directory.
-cp -rp ../config .
+# not needed if build above docker directory
+#cp -rp ../config .
+
 
 # copy jar down to build directory
 cp ../target/*jar .
