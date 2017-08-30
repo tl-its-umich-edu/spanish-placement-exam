@@ -33,8 +33,8 @@ RUN df -h /
 
 ############### assemble artifacts into /opt/spe #################
 
-RUN mkdir -p /opt/spe/bin
-RUN mv /tmp/target/spanish*jar /opt/spe/bin/spe.jar
+RUN mkdir -p /opt/spe-bin
+RUN mv /tmp/target/spanish*jar /opt/spe-bin/spe.jar
 
 ####### NOTE: security files will handled as OS secrets
 ## install the configuration files
@@ -54,12 +54,15 @@ RUN mkdir -p /opt/spe/persist
 # ### set default command to be the SPE jar.
 WORKDIR /opt/spe
 
+RUN find /opt/spe -ls
+RUN find /opt/spe-bin -ls
+
 # set entry point so can add arguments from "docker run" on command line.
 # EX: If start with:
 # docker run -e TZ=America/New_York spe_a --spring.profiles.include=ZOMBIE
 # ZOMBIE will be ADDED to the list of spring profiles to include.
 # 
-ENTRYPOINT ["java", "-jar","/opt/spe/bin/spe.jar", \
+ENTRYPOINT ["java", "-jar","/opt/spe-bin/spe.jar", \
             "-Djava.security.egd=file:/dev/./urandom", \
             "--test.skipRun=false", \
             "--spring.profiles.include=DBG,OS-dev"\
