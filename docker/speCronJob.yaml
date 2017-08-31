@@ -1,7 +1,7 @@
 apiVersion: batch/v2alpha1
 kind: CronJob
 metadata:
-  name: spedev
+  name: POD_NAME
 spec:
   schedule: "*/2 9-18 * * *"
   jobTemplate:
@@ -14,9 +14,11 @@ spec:
           containers:
           - name: spedev-image-test
             image: 172.30.183.221:5000/spanish-placement-exam-dev/spanish-placement-exam:latest
-            args:
-            - /bin/sh
-            - -c
-            - date; echo HI This is testing SPEDev cron jobs.
+            volumeMounts:
+            - mountPath: /opt/spe_persist
+              name: volume-rbjaj
+          volumes:
+          - name: volume-rbjaj
+            persistentVolumeClaim:
+              claimName: sp-exam-storage-claim
           restartPolicy: OnFailure
-comment: HOWDY I AM TESTING COMMENTS.
