@@ -4,6 +4,7 @@
 
 # TODO: make more general (multiple variables, different templates, ...)
 # TODO: read variables from settings file, allow defaults and overrides.
+# TODO: add secrets
 
 # Example commands for maintenance.  Commands can accept a 
 # label to limit consideration e.g. oc get jobs -l parent=speCronJob
@@ -16,14 +17,16 @@
 
 HELP_string=$( cat <<'EOF'
 $0: mangage OpenShift cron jobs.\n
->> Currently hard coded to deal with Spanish PLacement Exams but could easily be generalized.\n
+To setup the Spanish Placement Exam use
+  ./runAsCronJob.sh spe | oc create -f -
+>> Currently only manages Spanish PLacement Exams but could easily be generalized.\n
 Requires single argument specifying the prefix for the cron job template. \n
-By default this will create a template for an OpenShift cron job and print it.  
+By default this will create a template for an OpenShift cron job and print it.\n
 This will generate and load a OS cronjob yaml file based on a template file. \n
 The template file will be specific to the job at hand.\n
 Clean up old jobs needs to be done by hand using oc delete jobs command.  See below.\n
 Other useful commands are: \n
-- oc create -f - (pipe the output of this script into that to create the cronjob).
+- oc create -f - (pipe the output of this script into that to create the cronjob).\n
 - oc delete cronjob/<cronjobname> \n
 - oc get job \n
 - oc get jobs -l parent=<parent name from template> \n
@@ -32,7 +35,11 @@ Other useful commands are: \n
 EOF
               )
 
+#command to add secret to pod
+#oc volume dc/bash --add --type=secret --secret-name=test-secret --mount-path=/opt/secrets
+
 set -e
+set -u
 
 function niceTimestamp {
     echo $(date +"%F-%H-%M-%S")
@@ -43,20 +50,15 @@ function help {
     exit 1;
 }
 
-#set -x
-
+# Get the prefix.
 NAME_PREFIX=${1:-help}
 
 # print help if asked
-#if [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ] || [ "$1" == "help" ]; then
+# TODO: this could be simpler with regex or options processing.
 if [ "${NAME_PREFIX}" == "-h" ] || [ "${NAME_PREFIX}" == "-help" ] \
        || [ "${NAME_PREFIX}" == "--help" ] || [ "${NAME_PREFIX}" == "help" ]; then
    help
 fi
-
-# Identifies the cron job.
-#NAME_PREFIX=spe
-
 
 TS=$(niceTimestamp)
 CRONJOB_NAME="${NAME_PREFIX}-${TS}-cronjob"

@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: _CRONJOB_NAME_
 spec:
-  schedule: "*/5 9-18 * * *"
+  schedule: "*/5 8-18 * * *"
   jobTemplate:
     spec:
       template:
@@ -15,12 +15,19 @@ spec:
           - name: spedev-image-test
             image: 172.30.183.221:5000/spanish-placement-exam-dev/spanish-placement-exam:latest
             args:
-            - --spring.profiles.include=ZOMBIE
+            - --spring.profiles.include=OS-dev,QAINTEGRATION
+            - --spring.config.location=file:/opt/secrets/
             volumeMounts:
             - mountPath: /opt/spe_persist
               name: volume-rbjaj
+            - mountPath: /opt/secrets
+              name: volume-foo8w
           volumes:
           - name: volume-rbjaj
             persistentVolumeClaim:
               claimName: sp-exam-storage-claim
+          - name: volume-foo8w
+            secret:
+              defaultMode: 420
+              secretName: qa-secret
           restartPolicy: OnFailure

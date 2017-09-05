@@ -1,4 +1,6 @@
 set -x
-./build.sh && ./runDockerSPE.sh
+
+ ./docker/build.sh && ./docker/runDockerSPE.sh
+
 #end
 

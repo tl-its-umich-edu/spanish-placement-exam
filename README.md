@@ -35,4 +35,11 @@ OpenShift
 This allows adjustments when there is an interruption in the scheduled
 running.
 
+Run as cronjob. not a deployment. See docker directory for helper script.
+Note that cronjob doesn't clean up it's jobs or pods so they will
+accumulate.  Might have the cronjob creator script run clean up first before starting
+a new cronjob.
+
+How see logs for cronjob pods?  I don't see it in the interface if
+there isn't a deployment.
 
