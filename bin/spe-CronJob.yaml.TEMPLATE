@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: _CRONJOB_NAME_
 spec:
-  schedule: "*/5 8-18 * * *"
+  schedule: "5 8-23 * * *"
   jobTemplate:
     spec:
       template:
@@ -12,10 +12,10 @@ spec:
               parent: "speCronJob"
         spec:
           containers:
-          - name: spedev-image-test
+          - name: speqa-image
             image: 172.30.183.221:5000/spanish-placement-exam-dev/spanish-placement-exam:latest
             args:
-            - --spring.profiles.include=OS-dev,QAINTEGRATION
+            - --spring.profiles.include=QAINTEGRATION
             - --spring.config.location=file:/opt/secrets/
             volumeMounts:
             - mountPath: /opt/spe_persist
