@@ -10,11 +10,13 @@ import com.mashape.unirest.http.Unirest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+//import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
+//import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
 
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
@@ -59,7 +61,12 @@ public class SPEMaster {
 
 	@Autowired
 	private SPESummary spesummary;
-    
+
+	// Interval time in seconds.  Using interval has the advantage of
+	// not needing to check else where if the script is already running.
+	// hour = 3,600 seconds.
+	// day = 86,400 seconds.
+
 	// Pattern to detect if score is in right format.
 	public static Pattern scoreRegexPattern = Pattern.compile("^\\d\\d\\d\\d\\.\\d$");
 
@@ -92,10 +99,10 @@ public class SPEMaster {
 		return longValue;
 	}
 
-	/*********************** Orchestrate the script. *****************/
+	/*********************** Read / write the values. *****************/
 
 	/*
-	 * - configuration is read and injected by spring
+	 * - Spring reads and injects the configuration.
 	 * - get value gradeAfterTime from persist string (default if necessary).
 	 * - get grades.
 	 * - translate to format for updates.
@@ -105,9 +112,9 @@ public class SPEMaster {
 
 	/* Organize the task and handle errors */
 
-	public void orchestrator () throws PersistBlobException, GradeIOException {
+	public void worker () throws PersistBlobException, GradeIOException {
 
-		M_log.info("Start SPE orchestrator");
+		M_log.info("Start SPE worker");
 
 		setUnirestGlobalValues();
 
@@ -153,6 +160,57 @@ public class SPEMaster {
 			// Finish up, save data, send reports.
 			closeUpShop();
 		}
+
+
+	}
+
+	// Run the worker and then wait for a while before running again.
+	// Run then wait so will happen early the first time.
+	public void orchestrator() {
+
+		// get the interval wait time.
+		HashMap<String,String> testproperties = speproperties.getTest();
+
+		// wait this long between repeats
+		int intervalMilliSeconds = NumberUtils.toInt(SPEUtils.safeGetPropertyValue(testproperties,"intervalSeconds"),0) * 1000;
+		// stop after this many  Negative value means run forever.
+		int maxRuns = NumberUtils.toInt(SPEUtils.safeGetPropertyValue(testproperties,"maxRuns"),-1);
+		int numberRuns = 0;
+
+		LocalDateTime currentTime = LocalDateTime.now();
+		M_log.info("start processing: [{}]",currentTime);
+
+		// loop forever
+		while(maxRuns < 0 || numberRuns < maxRuns) {
+
+			if (numberRuns > 0) {
+				waitForAWhile(intervalMilliSeconds);
+			}
+
+			try {
+				worker();
+			} catch (PersistBlobException e) {
+				M_log.warn("PersistBlobException from worker",e);
+			} catch (GradeIOException e) {
+				M_log.warn("GradeIOException from worker",e);
+			}
+			numberRuns++;
+		}
+	}
+
+	// Wait around for a while then run it.  The wait time interval is fixed
+	// rather than trying to run at a particular time.
+	// We assume this is not fatal.
+	public void waitForAWhile(int intervalMilliSeconds) {
+		M_log.debug("wait for {} seconds",intervalMilliSeconds/1000);
+		try {
+			Thread.sleep(intervalMilliSeconds);
+		} catch (InterruptedException e) {
+			// If there is an interruption log it, but do not
+			// consider it to be fatal.
+			M_log.info("SPEMaster sleep interrupted: "+e);
+		}
+		M_log.debug("return after (likely) waiting",intervalMilliSeconds/1000);
 	}
 
 	/************ Close down processing, create summary ************/

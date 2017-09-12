@@ -65,7 +65,7 @@ RUN find /opt/spe-bin -ls
 ENTRYPOINT ["java", "-jar","/opt/spe-bin/spe.jar", \
             "-Djava.security.egd=file:/dev/./urandom", \
             "--test.skipRun=false", \
-            "--spring.profiles.include=DBG,OS,OS-QA"\
+            "--spring.profiles.include=OS"\
             ]
 
 #            "--spring.profiles.include=DBG,FILEIO"\

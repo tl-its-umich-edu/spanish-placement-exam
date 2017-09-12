@@ -39,7 +39,12 @@ mkdir -p ${HOST_PERSIST}
 # try multiple args in startup
 #SP_ARGS=" --spring.profiles.include=OS-dev,MASTERofNONE  --spring.config.location=classpath:/external/properties/,classpath:/com/roufid/tutorial/configuration/"
 #SP_ARGS=" --spring.profiles.include=OS-dev,QAINTEGRATION  --spring.config.location=file:/opt/secrets/"
-SP_ARGS=" --spring.profiles.include=QAINTEGRATION  --spring.config.location=file:/opt/secrets/"
+#SP_ARGS=" --spring.profiles.include=QAINTEGRATION  --spring.config.location=file:/opt/secrets/"
+#SP_ARGS=" --spring.profiles.include=  --spring.config.location=file:/opt/secrets/"
+#SP_PROFILES=" --spring.profiles.include=QAINTEGRATION "
+SP_PROFILES=" --spring.profiles.include=DBG,FILEIO,OS-dev "
+SP_SECRETS_DIR=" --spring.config.location=file:/opt/secrets/ "
+SP_ARGS=" ${SP_PROFILES} ${SP_SECRETS_DIR} "
 
 
 echo "Running docker image with tag [${TAG}] "

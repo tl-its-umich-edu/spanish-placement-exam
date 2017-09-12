@@ -47,6 +47,7 @@ public class SpringApplicationSPE implements CommandLineRunner {
 
 		// to run or not to run, that's a great question.
 		if (! "TRUE".equals(skipRun.toUpperCase())) {
+			//spe.worker();
 			spe.orchestrator();
 		}
 	}
