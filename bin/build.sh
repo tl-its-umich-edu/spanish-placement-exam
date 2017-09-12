@@ -43,7 +43,7 @@ TEMP_ARGS=" -D maven.test.skip=true "
 #cp ./target/*jar .
 
 # Dockerfile has the mvn commands
-${DOCKER} build -t ${DOCKER_TAG} .
+time ${DOCKER} build --no-cache -t ${DOCKER_TAG} .
 
 #echo "current directory: " $(pwd)
 # remove the temporary directory for config files
