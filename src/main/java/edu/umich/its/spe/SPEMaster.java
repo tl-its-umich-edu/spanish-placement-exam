@@ -202,7 +202,7 @@ public class SPEMaster {
 	// rather than trying to run at a particular time.
 	// We assume this is not fatal.
 	public void waitForAWhile(int intervalMilliSeconds) {
-		M_log.debug("wait for {} seconds",intervalMilliSeconds/1000);
+		M_log.debug("############ wait for {} seconds",intervalMilliSeconds/1000);
 		try {
 			Thread.sleep(intervalMilliSeconds);
 		} catch (InterruptedException e) {
@@ -215,10 +215,10 @@ public class SPEMaster {
 
 	/************ Close down processing, create summary ************/
 	public void closeUpShop() {
-		// TODO: implement task shutdown.
 		// Just print summary.
+		//
 		System.out.println(spesummary.toString());
-		M_log.error("Implement close up shop");
+		M_log.error("Implement email of summary");
 	}
 
 	/********* esb verify **********/
