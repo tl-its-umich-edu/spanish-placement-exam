@@ -16,16 +16,58 @@ for details.
 
 # Running SPE
 
+# Configuration / Properties
+
+SPE takes advantage of the Spring profile capability. Property files are named 
+using the Spring convention of *\{name\}.properties>.
+The file with the name *application.properties* will always be read.  Additional 
+*profile* files may be read.
+A *-{profile}* suffix can be appended to *application* in the properties file name to
+identify a file as an optional profile properties file.  These can
+included, or not, by specifying a run time argument.
+The profiles to be included  can be specified by adding the 
+suffix to the run time 
+argument *--spring.profiles.include={suffixes}*.  The files will be read in the 
+order specified.  Specific property values may be specified in multiple files.  The last value
+read will be used. For example the argument *--spring.profiles.include=DBG,OS-DEV* would
+include the files *application.properties*, *application-DBG.properties* 
+and *application-OS-DEV.properties*.  Any propery value set in the OS-DEV
+profile file would be the value used by SPE.
+
+Properties are split between secure and public properties.  In OpenShift 
+the secure properties are kept in project specific Secrets.  Secure files should
+only contain information that isn't appropriate to put in a public GitHub
+repository. Public properties are kept with the rest of the files in 
+source control.
+
+In production there will typically be three properties files used:
+ * application.properties - This includes values unlikely to change between DEV/QA/PROD instances.
+ * application-OS-{instance}.properties - This includes only values specific to a 
+ particular instance.  E.g. It will include the course number for the test SPE site 
+ or for the real SPE site depending on the instance.
+ * application-{secure-file-name}.properties. - This will contain only the 
+ information required for secure connections.  E.g. the urls, key, and secret (etc.)
+ values to connect to the ESB. 
+ 
+The secure file(s) will be uploaded as OpenShift secrets.  The secrets volume 
+will need to be mounted as a seperate directory:  E.g. */opt/secrets*. 
+
 # Design
-SPE is a Spring Boot java application running as a cron job in
-OpenShift. It is nearly stateless.  Grades are retrieved and updated
+SPE is a Spring Boot java application. It runs in a continuous loop  but has 
+built in pauses so that it will completely process input periodically. This 
+built in wait should be replaced by explicit cron functionality but the 
+options for that
+are current quite limited in OpenShift.
+
+The job is nearly stateless.  Grades are retrieved and updated
 through an ESB API.  Non-secure configuration is bundled with the
 application. Secure information is provided through OpenShift
 Secrets.  Summary information is logged and, when there grade
 activity, is sent to the MCommunity group *TBD*.
 
 A very small amount of disk storage is used to record the last request
-date.  This prevents reprocessing grades. See SPECIAL FEATURES for details.
+date.  This prevents continual re-processing of grades. 
+See SPECIAL FEATURES for details.
  
 # Developer stuff
  
@@ -105,6 +147,8 @@ For each dev/qa/prod instance the volume identifiers will need to be
 set. They are unlikely to change after they are first created.
 
 ### Update the Cron Job
+
+WRONG WRONG WRONG
 
 To update the cron job:
 
