@@ -5,52 +5,14 @@ Canvas to be automatically added to MPathways.  It runs
 periodically as a batch script.  It needs little attention unless
 there are external changes to authentication information or data
 formats.  The script is silent except when there are grades processed.
-If there is new grade information the script will email a
+If there is new grade information the script will email a 
 summary report to an mcommunity group.  The summary report is also
 written to the log every time the script runs.
 
 SPE will keep track of the last time it requested grade data so that
-grades won't be requested or processed.  If the date get
+grades won't constantly be requested or processed.  If the date get
 corrupted it can be adjusted manually.  See SPECIAL PROCESSING below
 for details.
-
-# Running SPE
-
-# Configuration / Properties
-
-SPE takes advantage of the Spring profile capability. Property files are named 
-using the Spring convention of *\{name\}.properties>.
-The file with the name *application.properties* will always be read.  Additional 
-*profile* files may be read.
-A *-{profile}* suffix can be appended to *application* in the properties file name to
-identify a file as an optional profile properties file.  These can
-included, or not, by specifying a run time argument.
-The profiles to be included  can be specified by adding the 
-suffix to the run time 
-argument *--spring.profiles.include={suffixes}*.  The files will be read in the 
-order specified.  Specific property values may be specified in multiple files.  The last value
-read will be used. For example the argument *--spring.profiles.include=DBG,OS-DEV* would
-include the files *application.properties*, *application-DBG.properties* 
-and *application-OS-DEV.properties*.  Any propery value set in the OS-DEV
-profile file would be the value used by SPE.
-
-Properties are split between secure and public properties.  In OpenShift 
-the secure properties are kept in project specific Secrets.  Secure files should
-only contain information that isn't appropriate to put in a public GitHub
-repository. Public properties are kept with the rest of the files in 
-source control.
-
-In production there will typically be three properties files used:
- * application.properties - This includes values unlikely to change between DEV/QA/PROD instances.
- * application-OS-{instance}.properties - This includes only values specific to a 
- particular instance.  E.g. It will include the course number for the test SPE site 
- or for the real SPE site depending on the instance.
- * application-{secure-file-name}.properties. - This will contain only the 
- information required for secure connections.  E.g. the urls, key, and secret (etc.)
- values to connect to the ESB. 
- 
-The secure file(s) will be uploaded as OpenShift secrets.  The secrets volume 
-will need to be mounted as a seperate directory:  E.g. */opt/secrets*. 
 
 # Design
 SPE is a Spring Boot java application. It runs in a continuous loop  but has 
@@ -69,12 +31,56 @@ A very small amount of disk storage is used to record the last request
 date.  This prevents continual re-processing of grades. 
 See SPECIAL FEATURES for details.
  
-# Developer stuff
+
+# Running SPE
+
+SPE is configured to run on OpenShift.  Projects and running instances
+are provided in the UM instance.
+
+# Configuration / Properties
+
+SPE takes advantage of the Spring profile capability. Profiles are property files are named 
+using the convention of *application-\{name\}.properties*.
+The file with the name *application.properties* will always be read.  Additional 
+files names such that a *-{profile}* string is appended  to *application* in the properties file name
+identify a file as an optional profile properties file.  
+The profiles to be read  can be specified by adding the profile name
+suffix to the run time 
+argument *--spring.profiles.include={suffixes}*.  The files will be read in the 
+order specified.  Specific property values may be specified in multiple files.  The last value
+read will be used. For example the argument *--spring.profiles.include=DBG,OS-DEV* would
+include the files *application.properties*, *application-DBG.properties* 
+and *application-OS-DEV.properties*.  Any propery value set in the OS-DEV
+profile file would be the value used by SPE.
+
+Properties are split between secure and public properties.Secure files should
+only contain information that isn't appropriate to put in a public GitHub
+repository. Public properties are kept with the rest of the files in 
+source control.   In OpenShift 
+the secure properties are kept in project specific Secrets.  The secrets volume 
+will need to be mounted as a seperate directory:  E.g. */opt/secrets*. 
+
+In production there will typically be three properties files used:
+
+ * application.properties - This includes values unlikely to change between DEV/QA/PROD instances.
+ * application-OS-{instance}.properties - This includes only values specific to a 
+ particular instance.  E.g. It will include the course number for the test SPE site 
+ or for the real SPE site depending on the instance.
+ * application-{secure-profile}.properties. - This will contain only the 
+ information required for secure connections.  E.g. the urls, key, and secret (etc.)
+ values to connect to the ESB. 
+ 
+# Development
  
 There are no explicit dependencies in SPE on either Docker or
 OpenShift.  If you supply the data volumes and the services required
 by SPE it should run fine in Docker on a laptop or from the command
 line or in an IDE.
+
+If there are problems that cause a test instance to end up in a loop
+where it fails and then auto-deploys again either cancel the
+deployment from the deployment configuration page or just reduce the
+number of pods on that page to 0.
 
 # Input and Output
 SPE gets data from the SPE application in the IBM ESB.  It also
@@ -88,90 +94,37 @@ names all start with 'spe' and end with a time stamp. If the pod
 appears in the Applications/Pods list for the project you can get the
 log from the UI. Additional logs should be available using the "View
 Archive" tab on that page.  Logs may also be available via the command
-line or in Spunk, or OpenShift may also be available in Splunk or at
+line or in Spunk, or at
 https://kibana.openshift.dsc.umich.edu/
 
-# OpenShift
+# OpenShift Considerations
 
-Since cron jobs are aren't available in the OpenShift UI SPE is
-administered from the command line.  CronJobs and their underlying
-Jobs don't generate a deployment configuration and don't show up in
-the web overview or in the list of resources in the UI.  The
-pods that the jobs end up launching will be in the list of pods
+## Creating an SPE instance
+A new instance of code should be based on the deployment and build
+configuration of the existing instances.  It is unlikely that a new
+instance will be required.  Updating an existing instance is covered
+below.
 
- Some  administrative scripts are provided in the bin directory
-in the project.
+The disk volumes for the date persistence and for the OpenShift
+secrets need to be mounted explicitly.  This can be done in deployment
+configuration yaml or in the OpenShift UI.
 
-*runAsCronJob.sh* will generate a cron job configuration based on the
-speCronJob.yaml.TEMPLATE. Simply running runAsCronJob.sh with no argument
-will print some help on using the OpenShift CLI to administer the
-application.  It also describes how to install the configuration in OpenShift.
+## Updating a SPE instance
 
-The cron job template is not fully general.  It contains some
-specific values for the current runtime environment.  In particular it
-names the storage volumes used for configuration and disk files.
-These will vary in the different run time instances (dev, qa,
-production).  The template will need some manual adjustment for each
-environment.  It will automatically label the cronjob propertly and
-will provide a unique name for the job.
+A SPE application instance might need to be updated for several reasons.
 
-*listCronJobInfo.sh* lists the current existing cronjobs, jobs and
- pods for the project.  It's useful in generating the list of
- artifacts that need to be periodically cleaned up.  That cleanup is
- not automated.
+- *schedule*: The repetion frequency of the job may need to change.
+  This is done by changing the value of intervalSeconds in the
+  application properties file.
+- *new image*: If there is a new build the image specification must be
+updated. It shouldn't be "latest" for a production version.  Modifying
+this requires editing the deployment configuration yaml.
+- *application arguments*:  The list of application property files used by the script can
+be modified by changing the container arguments in the deployment
+configuration. The list will be different for different instances.
+See the properties file section above for more details.
 
-*runDockerSPE.sh* is a sample script for running SPE in Docker
-locally.  You will need to adjust the specifics for your needs.
-
-*getSPE.sh* provides a sample framework for direct queries to the ESB
- for debugging purposes.
-
-## Updating SPE
-
-The SPE application might need to be updated for several reasons.  The
-updates are very likely to be installed by updating the Cron Job
-template and reinstalling it.  Items likely to require adjustment in
-the cron job template are:
-
-- schedule: The time and frequency of the job may need to change.
-- image: If there is a new build the image specification must be
-updated. It shouldn't be "latest" for a production version.
-- args: The list of application property files used by the script can
-be modified in the arguments. The non-secure application properties
-are supplied in the build.  Only *application.properties* is used by
-default.  Others can be added by adding them to the
-*spring.profiles.include* line in the arguments section. These will
-vary by the desired use of the application instance.
-
-For each dev/qa/prod instance the volume identifiers will need to be
-set. They are unlikely to change after they are first created.
-
-### Update the Cron Job
-
-WRONG WRONG WRONG
-
-To update the cron job:
-
-1. Use the *runAsCronJob.sh* script to generate the yaml needed to
-install the new cronjob.
-1. Adjust that yaml as required.  E.g. the cron schedule or startup
-arguments may have changed.
-1. Use *listCronJobInfo.sh* to list artifacts that should be cleaned
-up.
-1. Clean them up with *oc delete ...* The label can be very helpful in
-selecting what needs to be cleaned up.
-1. Upload the revised yaml with *oc create -f <filename>*
-
-# SPECIAL PROCESSING
-
-## Clean up artifacts
-Since the CronJob object doesn't clean up it's jobs or pods they will
-accumulate and need to be cleaned up periodically.  The script
-*listCronJobInfo.sh* will identify what needs to be cleaned up.
-
-An enhancement could be to have the *runAsCronJob.sh*  script run
-clean up before installing a new cronjob but that would only apply
-when changing a cronjob.
+# SPECIAL TASKS
 
 ## Adjust the last retrieved date
 
@@ -182,11 +135,3 @@ this can be edited directly by adding a new app that just runs a bash
 shell to the project and then attaching the data volume holding the
 persisted data to that pod. The file can then be edited in vi.
  
-## Adjusting run frequency
- 
-To modify the cron job run frequency adjust the speCronJob template
-and delete then recreate the job.  Be aware of the current run
-schedule since you need to be careful to make the change at a time
-when the old job isn't running but before the time when the new job
-needs to run.
-
