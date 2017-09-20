@@ -17,6 +17,8 @@ import java.util.HashMap;
 //import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
@@ -80,6 +82,18 @@ public class SPEMaster {
 	public SPEMaster() {
 		super();
 		M_log.info("SPEMaster: this: "+this.toString());
+	}
+
+	// Normalize the global email setting
+	@PostConstruct
+	void globalSettingsFromProperties() {
+		emailMap = speproperties.getEmail();
+
+		String alwaysMailReport = "FALSE";
+		if (emailMap.get("alwaysMailReport") != null) {
+			alwaysMailReport = emailMap.get("alwaysMailReport").toUpperCase();
+		}
+		emailMap.put("alwaysMailReport", alwaysMailReport);
 	}
 
 	// Set global timeouts for EBS calls
@@ -231,14 +245,22 @@ public class SPEMaster {
 
 	public void sendSummaryEmail() {
 
-		if ((spesummary.getAdded() + spesummary.getErrors()) == 0) {
+		//emailMap = speproperties.getEmail();
+
+		//String alwaysMailReport = "FALSE";
+		//if (emailMap.get("alwaysMailReport") != null) {
+		//	alwaysMailReport = emailMap.get("alwaysMailReport").toUpperCase();
+		//}
+
+		if (((spesummary.getAdded() + spesummary.getErrors()) == 0)
+				&& !"TRUE".equals(emailMap.get("alwaysMailReport"))) {
 			M_log.warn("No users were processed.");
 			return;
 		}
 
+		M_log.info("sending email report");
+
 		if (sjm == null) {
-			emailMap = speproperties.getEmail();
-			// emailMap has mail configuration values.
 			sjm = new SimpleJavaEmail(emailMap);
 		}
 

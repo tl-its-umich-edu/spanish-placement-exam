@@ -1,3 +1,11 @@
+
+## TTD
+1. add these:
+    * io.getGradeIO=./config/getGrades-TEST-A.json 
+    * io.putGradeIO=./configputGrades-V-7170-E.txt
+1. what about ESB secrets?
+ 
+
 # Spanish Placement Exam Script
 
 This script is to allow student grades on Spanish placement exams in
@@ -58,7 +66,7 @@ only contain information that isn't appropriate to put in a public GitHub
 repository. Public properties are kept with the rest of the files in 
 source control.   In OpenShift 
 the secure properties are kept in project specific Secrets.  The secrets volume 
-will need to be mounted as a seperate directory:  E.g. */opt/secrets*. 
+will need to be mounted as a separate directory:  E.g. */opt/secrets*. 
 
 In production there will typically be three properties files used:
 
@@ -69,8 +77,10 @@ In production there will typically be three properties files used:
  * application-{secure-profile}.properties. - This will contain only the 
  information required for secure connections.  E.g. the urls, key, and secret (etc.)
  values to connect to the ESB. 
- 
+
 # Development
+ 
+ 
  
 There are no explicit dependencies in SPE on either Docker or
 OpenShift.  If you supply the data volumes and the services required
