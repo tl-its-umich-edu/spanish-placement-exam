@@ -44,7 +44,7 @@ WORKDIR /tmp/config
 RUN ls -l /tmp/config
 RUN cp /tmp/config/*properties /opt/spe/config/
 # don't insist that yml files exist.
-RUN cp /tmp/config/*yml /opt/spe/config/; exit 0;
+#RUN cp /tmp/config/*yml /opt/spe/config/; exit 0;
 RUN cp /tmp/config/*json /opt/spe/config/
 
 # Create directory to store persisted information.
