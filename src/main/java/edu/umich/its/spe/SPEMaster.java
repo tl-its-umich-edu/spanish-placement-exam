@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import com.mashape.unirest.http.Unirest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 //import java.util.Date;
 import java.util.HashMap;
 //import java.util.Map;
@@ -44,14 +46,18 @@ import org.json.JSONException;
 public class SPEMaster {
 
 	static final Logger M_log = LoggerFactory.getLogger(SPEMaster.class);
+
+	// Keep maps of (some) specific sets of properties.
 	static HashMap<String,String> unirest;
+	static HashMap<String,String> emailMap;
+	static HashMap<String,String> repeatMap;
+
+	// Need to make a new copy for every run.
+	private SPESummary spesummary;
 
 	// Let Spring inject the properties, the esb service, and the persistString implementation.
 	@Autowired
 	private GradeIO gradeio;
-
-//	@Autowired
-//	private PersistBlob persistString;
 
 	@Autowired
 	private PersistTimestamp persisttimestamp;
@@ -59,8 +65,8 @@ public class SPEMaster {
 	@Autowired
 	private SPEProperties speproperties;
 
-	@Autowired
-	private SPESummary spesummary;
+	// Class to generate new email objects.
+	private SimpleJavaEmail sjm;
 
 	// Interval time in seconds.  Using interval has the advantage of
 	// not needing to check else where if the script is already running.
@@ -136,6 +142,8 @@ public class SPEMaster {
 
 		LocalDateTime currentGradeRetrievalTime = LocalDateTime.now();
 
+		spesummary = new SPESummary();
+
 		try {
 			assignmentsFromDW = getSPEGrades(speproperties,priorUpdateTime);
 
@@ -160,8 +168,6 @@ public class SPEMaster {
 			// Finish up, save data, send reports.
 			closeUpShop();
 		}
-
-
 	}
 
 	// Run the worker and then wait for a while before running again.
@@ -169,18 +175,20 @@ public class SPEMaster {
 	public void orchestrator() {
 
 		// get the interval wait time.
-		HashMap<String,String> testproperties = speproperties.getTest();
+		//HashMap<String,String> testproperties = speproperties.getTest();
+		repeatMap = speproperties.getRepeat();
 
 		// wait this long between repeats
-		int intervalMilliSeconds = NumberUtils.toInt(SPEUtils.safeGetPropertyValue(testproperties,"intervalSeconds"),0) * 1000;
+		int intervalMilliSeconds = NumberUtils.toInt(SPEUtils.safeGetPropertyValue(repeatMap,"intervalSeconds"),14400) * 1000;
 		// stop after this many  Negative value means run forever.
-		int maxRuns = NumberUtils.toInt(SPEUtils.safeGetPropertyValue(testproperties,"maxRuns"),-1);
+		int maxRuns = NumberUtils.toInt(SPEUtils.safeGetPropertyValue(repeatMap,"maxRuns"),-1);
+
 		int numberRuns = 0;
 
 		LocalDateTime currentTime = LocalDateTime.now();
 		M_log.info("start processing: [{}]",currentTime);
 
-		// loop forever
+		// Control looping.  Can be set to run forever.
 		while(maxRuns < 0 || numberRuns < maxRuns) {
 
 			if (numberRuns > 0) {
@@ -198,11 +206,12 @@ public class SPEMaster {
 		}
 	}
 
-	// Wait around for a while then run it.  The wait time interval is fixed
-	// rather than trying to run at a particular time.
-	// We assume this is not fatal.
+	// Wait around for a while then return in order to simulate cron jobs.
+	// The wait time interval is fixed rather than trying to run at a particular time.
+	// We assume this is ok.
+
 	public void waitForAWhile(int intervalMilliSeconds) {
-		M_log.debug("############ wait for {} seconds",intervalMilliSeconds/1000);
+		M_log.info("------------- wait for {} seconds -------------",intervalMilliSeconds/1000);
 		try {
 			Thread.sleep(intervalMilliSeconds);
 		} catch (InterruptedException e) {
@@ -210,15 +219,36 @@ public class SPEMaster {
 			// consider it to be fatal.
 			M_log.info("SPEMaster sleep interrupted: "+e);
 		}
-		M_log.debug("return after (likely) waiting",intervalMilliSeconds/1000);
+		M_log.info("------------- resume processing -------------");
 	}
 
 	/************ Close down processing, create summary ************/
 	public void closeUpShop() {
 		// Just print summary.
-		//
-		System.out.println(spesummary.toString());
-		M_log.error("Implement email of summary");
+		M_log.info(spesummary.toString());
+		sendSummaryEmail();
+	}
+
+	public void sendSummaryEmail() {
+
+		if ((spesummary.getAdded() + spesummary.getErrors()) == 0) {
+			M_log.warn("No users were processed.");
+			return;
+		}
+
+		if (sjm == null) {
+			emailMap = speproperties.getEmail();
+			// emailMap has mail configuration values.
+			sjm = new SimpleJavaEmail(emailMap);
+		}
+
+		String summaryString = spesummary.toString();
+
+		sjm.sendSimpleMessage(
+				emailMap.get("from"),
+				emailMap.get("to"),
+				emailMap.get("subject")+" "+SimpleJavaEmail.getISO8601StringForDate(new Date()),
+				summaryString);
 	}
 
 	/********* esb verify **********/

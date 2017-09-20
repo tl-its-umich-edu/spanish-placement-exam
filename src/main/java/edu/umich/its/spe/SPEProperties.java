@@ -33,4 +33,6 @@ public class SPEProperties {
 	private HashMap<String,String> putgrades;
 	private HashMap<String,String> unirest;
 	private HashMap<String,String> test;
+	private HashMap<String,String> repeat;
+	private HashMap<String,String> email;
 }
