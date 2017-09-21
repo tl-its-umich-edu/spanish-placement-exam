@@ -14,7 +14,7 @@ echo "$0: build spanish placement exam docker image."
 echo "dir: $(PWD)"
 
 # This is OSX. May need to reset based on the build environment.
-MVN=/usr/local/bin/mvn
+#MVN=/usr/local/bin/mvn
 DOCKER=/usr/local/bin/docker
 
 # set timezone explicitly

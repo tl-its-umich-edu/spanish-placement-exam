@@ -12,9 +12,7 @@ import com.mashape.unirest.http.Unirest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-//import java.util.Date;
 import java.util.HashMap;
-//import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -189,7 +187,6 @@ public class SPEMaster {
 	public void orchestrator() {
 
 		// get the interval wait time.
-		//HashMap<String,String> testproperties = speproperties.getTest();
 		repeatMap = speproperties.getRepeat();
 
 		// wait this long between repeats
