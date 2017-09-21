@@ -1,4 +1,3 @@
-
 ## TTD
 1. add these:
     * io.getGradeIO=./config/getGrades-TEST-A.json 
@@ -66,7 +65,7 @@ only contain information that isn't appropriate to put in a public GitHub
 repository. Public properties are kept with the rest of the files in 
 source control.   In OpenShift 
 the secure properties are kept in project specific Secrets.  The secrets volume 
-will need to be mounted as a separate directory:  E.g. */opt/secrets*. 
+will need to be mounted as a seperate directory:  E.g. */opt/secrets*. 
 
 In production there will typically be three properties files used:
 
@@ -79,9 +78,7 @@ In production there will typically be three properties files used:
  values to connect to the ESB. 
 
 # Development
- 
- 
- 
+
 There are no explicit dependencies in SPE on either Docker or
 OpenShift.  If you supply the data volumes and the services required
 by SPE it should run fine in Docker on a laptop or from the command

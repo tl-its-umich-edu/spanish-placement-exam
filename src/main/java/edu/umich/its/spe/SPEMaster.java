@@ -179,6 +179,8 @@ public class SPEMaster {
 			// Finish up, save data, send reports.
 			closeUpShop();
 		}
+
+
 	}
 
 	// Run the worker and then wait for a while before running again.
