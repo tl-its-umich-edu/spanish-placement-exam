@@ -1,0 +1,33 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: _CRONJOB_NAME_
+spec:
+  schedule: "5 8-23 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+            labels:
+              parent: "speCronJob"
+        spec:
+          containers:
+          - name: speqa-image
+            image: 172.30.183.221:5000/spanish-placement-exam-dev/spanish-placement-exam:latest
+            args:
+            - --spring.profiles.include=QAINTEGRATION
+            - --spring.config.location=file:/opt/secrets/
+            volumeMounts:
+            - mountPath: /opt/spe_persist
+              name: volume-rbjaj
+            - mountPath: /opt/secrets
+              name: volume-foo8w
+          volumes:
+          - name: volume-rbjaj
+            persistentVolumeClaim:
+              claimName: sp-exam-storage-claim
+          - name: volume-foo8w
+            secret:
+              defaultMode: 420
+              secretName: qa-secret
+          restartPolicy: OnFailure
