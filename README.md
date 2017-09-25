@@ -5,6 +5,9 @@
 1. what about ESB secrets?
  
 
+OVERRIDE container
+- can replace container args in yaml but not using env (AFAIK)
+
 # Spanish Placement Exam Script
 
 This script is to allow student grades on Spanish placement exams in
