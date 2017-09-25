@@ -91,6 +91,7 @@ public class SPEMaster {
 			alwaysMailReport = emailMap.get("alwaysMailReport").toUpperCase();
 		}
 		emailMap.put("alwaysMailReport", alwaysMailReport);
+        M_log.debug("alwaysMailReport: computed: {}",alwaysMailReport);
 	}
 
 	// Set global timeouts for EBS calls
@@ -242,13 +243,6 @@ public class SPEMaster {
 	}
 
 	public void sendSummaryEmail() {
-
-		//emailMap = speproperties.getEmail();
-
-		//String alwaysMailReport = "FALSE";
-		//if (emailMap.get("alwaysMailReport") != null) {
-		//	alwaysMailReport = emailMap.get("alwaysMailReport").toUpperCase();
-		//}
 
 		if (((spesummary.getAdded() + spesummary.getErrors()) == 0)
 				&& !"TRUE".equals(emailMap.get("alwaysMailReport"))) {

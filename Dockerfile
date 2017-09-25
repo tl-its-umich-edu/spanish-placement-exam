@@ -8,7 +8,7 @@ MAINTAINER Teaching and Learning <its.tl.dev@umich.edu>
 
 #### Setup environment
 RUN apt-get update \
- && apt-get install -y emacs maven
+ && apt-get install -y maven
 
 #### Get and build source
 WORKDIR /tmp

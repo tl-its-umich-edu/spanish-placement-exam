@@ -24,16 +24,16 @@ public class SimpleJavaEmail {
 
 	Properties mailProperties;
 
-	// Create and store the desired properties given a hashmap.
+    // Convert hashmap into properties after selecting the right ones.
 
-	// Default the prefix.
+	// Specify prefix for the mail properties
 	SimpleJavaEmail(HashMap<String,String> inputProperties) {
 		this(inputProperties,"mail.");
 	}
 
 	SimpleJavaEmail(HashMap<String,String> inputProperties,String prefix) {
 		mailProperties = extractPrefixedProperties(prefix,inputProperties);
-		M_log.debug("mailProperties: {}",mailProperties);
+		M_log.debug("constructor: mailProperties: {}",mailProperties);
 	}
 
 	// Utility to pull out the properties with specific prefix.
@@ -61,6 +61,7 @@ public class SimpleJavaEmail {
 
 	public void sendSimpleMessage(String from, String to, String subject, String text) {
 
+        M_log.debug("send message: to: {} subject: {}",to,subject);
 		SimpleMailMessage message = new SimpleMailMessage();
 		JavaMailSender sender = getJavaMailSender();
 
@@ -73,10 +74,8 @@ public class SimpleJavaEmail {
 	}
 
 	static String getISO8601StringForDate(Date date) {
-		//DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        // Get the current time (with time zone).
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss z", Locale.getDefault());
-		                      //new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss z", Locale.getDefault());
-		//dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return dateFormat.format(date);
 	}
 
