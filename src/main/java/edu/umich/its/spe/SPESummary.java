@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
@@ -28,14 +30,17 @@ import lombok.Data;
 @Data
 public class SPESummary {
 
+	static final Logger M_log = LoggerFactory.getLogger(SPEMaster.class);
+
 	private static final String LINE_RETURN = "\n";
 
 	private LocalDateTime startTime = LocalDateTime.now();
 	private LocalDateTime endTime;
 
-	// record grade retrieval timestamps for stored value, used value,
-	// and new value to be stored for next time.
-	// String is a suitable format since these are only use in the report.
+	// record grade retrieval timestamps for the value that was already stored,
+	// the (computed) value that was used, and the value to be stored for next time.
+	// String is a suitable format since these are only used in the report.
+
 	private String storedGradesLastRetrieved = new String();
 	private String useGradesLastRetrieved = new String();
 	private String updatedGradesLastRetrieved  = new String();
@@ -43,7 +48,7 @@ public class SPESummary {
 	// id of the canvas course used as grade source
 	private String courseId = new String();
 
-	// Keep list of use names and processing success.
+	// Keep list of user names and processing success.
 	private List<Pair<String, Boolean>> users  = new ArrayList<Pair<String,Boolean>>();
 	private int added = 0;
 	private int errors = 0;
@@ -56,6 +61,7 @@ public class SPESummary {
 		} else {
 			errors++;
 		};
+
 		return this;
 	}
 
@@ -66,24 +72,31 @@ public class SPESummary {
 		endTime = LocalDateTime.now();
 		StringBuffer result = new StringBuffer();
 
-		 Duration dur = Duration.between(startTime, endTime);
+		Duration dur = Duration.between(startTime, endTime);
 
-		 //System.out.println("start: "+startTime+" end: "+endTime+" duration: "+DurationFormatUtils.formatDurationHMS(dur.toMillis()));
+		// make sure there is a printable value even if no course id (when testing).
+		String courseIdString = courseId.toString().length() > 0 ? courseId.toString() : "[none]";
 
-
+		result.append(LINE_RETURN);
+		result.append(LINE_RETURN);
 		result.append("starting time: ").append(PersistTimestamp.formatTimestamp(startTime)).append(LINE_RETURN);
 		result.append("end time: ").append(PersistTimestamp.formatTimestamp(endTime)).append(LINE_RETURN);
 		result.append("elapsed time: ").append(DurationFormatUtils.formatDurationHMS(dur.toMillis())).append(LINE_RETURN);
+		result.append(LINE_RETURN);
 
 		result.append("storedGradesLastRetrieved: ").append(storedGradesLastRetrieved.toString()).append(LINE_RETURN);
 		result.append("useGradesLastRetrieved: ").append(useGradesLastRetrieved.toString()).append(LINE_RETURN);
 		result.append("updatedGradesLastRetrieved: ").append(updatedGradesLastRetrieved.toString()).append(LINE_RETURN);
+		result.append(LINE_RETURN);
 
-		result.append("courseId: ").append(courseId.toString()).append(LINE_RETURN);
+		result.append("courseId: ").append(courseIdString).append(LINE_RETURN);
+		result.append(LINE_RETURN);
 
 		result.append("users added: ").append(added).append(" errors: ").append(errors).append(LINE_RETURN);
+		result.append(LINE_RETURN);
 
-		users.forEach((u) -> result.append("user: ").append(u.getLeft())
+		users.forEach((u) -> result
+				.append("user: ").append(u.getLeft())
 				.append(" success: ").append(u.getRight())
 				.append(LINE_RETURN));
 

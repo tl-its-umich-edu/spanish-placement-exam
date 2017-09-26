@@ -69,9 +69,9 @@ In production there will typically be three properties files used:
  * application-{secure-profile}.properties. - This will contain only the 
  information required for secure connections.  E.g. the urls, key, and secret (etc.)
  values to connect to the ESB. 
- 
+
 # Development
- 
+
 There are no explicit dependencies in SPE on either Docker or
 OpenShift.  If you supply the data volumes and the services required
 by SPE it should run fine in Docker on a laptop or from the command
