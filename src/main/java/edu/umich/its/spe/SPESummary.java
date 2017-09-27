@@ -111,10 +111,10 @@ public class SPESummary {
 
 		// for each user (in sorted order) add an entry to the result string.
 		sortedUsers()
-				.forEach((u) -> result
-								.append("user: ").append(u.getLeft())
-								.append(" success: ").append(u.getRight())
-								.append(LINE_RETURN));
+		.forEach((u) -> result
+				.append("user: ").append(u.getLeft())
+				.append(" success: ").append(u.getRight())
+				.append(LINE_RETURN));
 
 		return result.toString();
 	}
