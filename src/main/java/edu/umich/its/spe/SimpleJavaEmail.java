@@ -1,15 +1,10 @@
 package edu.umich.its.spe;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 /*
  * Create generator of java mail sender objects.  Use this to deal with custom javamail property handling.
  */
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -73,12 +68,6 @@ public class SimpleJavaEmail {
 		message.setText(text);
 
 		sender.send(message);
-	}
-
-	static String getISO8601StringForDate(Date date) {
-		// Get the current time (with time zone).
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss z", Locale.getDefault());
-		return dateFormat.format(date);
 	}
 
 }
