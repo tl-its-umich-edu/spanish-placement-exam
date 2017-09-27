@@ -51,7 +51,8 @@ public class SPEMaster {
 	static HashMap<String,String> emailMap;
 	static HashMap<String,String> repeatMap;
 
-	// Need to make a new copy for every run.
+	// Inject a single copy to share.  The contents will need to be reset each iteration of the script.
+	@Autowired
 	private SPESummary spesummary;
 
 	// Let Spring inject the properties, the esb service, and the persistString implementation.
@@ -74,7 +75,6 @@ public class SPEMaster {
 
 	// Pattern to detect if score is in right format.
 	public static Pattern scoreRegexPattern = Pattern.compile("^\\d\\d\\d\\d\\.\\d$");
-
 
 	public SPEMaster() {
 		super();
@@ -143,6 +143,9 @@ public class SPEMaster {
 			throw new GradeIOException("Unable to connect to ESB");
 		}
 
+		// Reset the summary object with each iteration.
+		spesummary.reset();
+
 		//// Get the time from which to request grades.
 		String priorUpdateTime = persisttimestamp.ensureLastGradeTransferTime();
 
@@ -153,8 +156,6 @@ public class SPEMaster {
 		String assignmentsFromDW;
 
 		LocalDateTime currentGradeRetrievalTime = LocalDateTime.now();
-
-		spesummary = new SPESummary();
 
 		try {
 			assignmentsFromDW = getSPEGrades(speproperties,priorUpdateTime);

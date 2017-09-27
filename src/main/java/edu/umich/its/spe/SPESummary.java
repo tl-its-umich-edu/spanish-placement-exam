@@ -57,6 +57,26 @@ public class SPESummary {
 	private int added = 0;
 	private int errors = 0;
 
+	// Empty the object so it can be used anew for the next run.  Used auto-wiring to
+	// get the same object everywhere it is needed.  May not be the best choice if
+	// if using the internal wait and restart approach to cron jobs.
+
+	public void reset() {
+		startTime = LocalDateTime.now();
+		endTime = null;
+
+		storedGradesLastRetrieved = new String();
+		useGradesLastRetrieved = new String();
+		updatedGradesLastRetrieved  = new String();
+
+		courseId = new String();
+
+		users  = new ArrayList<Pair<String,Boolean>>();
+		added = 0;
+		errors = 0;
+
+	}
+
 	public SPESummary appendUser(String name,Boolean success) {
 		users.add(Pair.of(name,success));
 		if (success) {
@@ -111,10 +131,10 @@ public class SPESummary {
 
 		// for each user (in sorted order) add an entry to the result string.
 		sortedUsers()
-				.forEach((u) -> result
-								.append("user: ").append(u.getLeft())
-								.append(" success: ").append(u.getRight())
-								.append(LINE_RETURN));
+		.forEach((u) -> result
+				.append("user: ").append(u.getLeft())
+				.append(" success: ").append(u.getRight())
+				.append(LINE_RETURN));
 
 		return result.toString();
 	}
