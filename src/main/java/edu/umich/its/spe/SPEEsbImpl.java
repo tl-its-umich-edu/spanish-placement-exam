@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 import edu.umich.ctools.esb.utils.WAPI;
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
+import lombok.Data;
+import lombok.Setter;
 
 /*
  * Implement esb calls to get / put grade information.
@@ -96,7 +98,7 @@ public class SPEEsbImpl implements GradeIO {
 
 		spesummary.setCourseId(values.get("COURSEID"));
 
-		StringBuilder url = formatGetURL(values);
+		String url = formatGetURLTemplate(values);
 
 		M_log.debug("getGrades: values:[" + values.toString() + "]");
 		M_log.debug("getGrades: request url: [" + url.toString() + "]");
@@ -120,23 +122,30 @@ public class SPEEsbImpl implements GradeIO {
 	}
 
 	/* Put together the URL to get grades */
-	public StringBuilder formatGetURL(HashMap<String, String> values) throws GradeIOException {
-		StringBuilder url = new StringBuilder();
 
-		// Assignment Title may contain blanks.  URLEncoder will form encode them as "+" but
-		// since the title ends up in the URL proper it must be fixed up to be % encoded.
+	// Ensure the assignment title is ok and then really format
+	public String formatGetURLTemplate(HashMap<String, String> values) throws GradeIOException {
 		try {
-			url.append(values.get("apiPrefix"))
-			.append("/data/CourseId/")
-			.append(values.get("COURSEID"))
-			.append("/AssignmentTitle/")
-			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8").replaceAll("\\+", "%20"));
+			values.put("ASSIGNMENTTITLE",
+					URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8").replaceAll("\\+", "%20"));
 		} catch (UnsupportedEncodingException e) {
 			M_log.error("encoding exception in getGrades"+e);
 			throw(new GradeIOException("encoding exception in getGrades",e));
 		}
-		return url;
+		return formatGetURLTemplateSimple(values);
 	}
+
+	// Template is set as an external io property.
+	public String formatGetURLTemplateSimple(HashMap<String, String> values) throws GradeIOException {
+		return String.format(
+				values.get("esbGetScoreTemplate"),
+				new Object[]{
+						values.get("apiPrefix"),
+						values.get("COURSEID"),
+						values.get("ASSIGNMENTTITLE")
+				});
+	}
+
 
 	/************************** put grades in MPathways *********************/
 
@@ -159,7 +168,7 @@ public class SPEEsbImpl implements GradeIO {
 		HashMap<String,String> value = new HashMap<String,String>();
 		value.putAll(speproperties.getIo());
 
-		// if no user that use default values (for testing).
+		// if no user then use default values (for testing).
 		if (user == null || user.isEmpty()) {
 			value.putAll(speproperties.getPutgrades());
 		}
@@ -171,7 +180,7 @@ public class SPEEsbImpl implements GradeIO {
 		return value;
 	}
 
-	// Put a single grade in MPathways
+	// Put a single score in MPathways
 
 	@Override
 	public WAPIResultWrapper putGradeVia(SPEProperties speproperties,HashMap<?, ?> user) {
@@ -182,7 +191,7 @@ public class SPEEsbImpl implements GradeIO {
 
 		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
 
-		StringBuilder url = formatPutURL(values);
+		String url = formatPutURLTemplate(values);
 
 		M_log.debug("putGrades: value:[" + values.toString() + "]");
 		M_log.debug("putGrades: request url: [" + url.toString() + "]");
@@ -198,15 +207,15 @@ public class SPEEsbImpl implements GradeIO {
 		return wrappedResult;
 	}
 
-	// Put together the URL to update the user's score in MPathways
-	public StringBuilder formatPutURL(HashMap<String, String> values) {
-		StringBuilder url = new StringBuilder();
-		url.append(values.get("apiPrefix"))
-		.append("/UniqName/")
-		.append(values.get("UNIQNAME"))
-		.append("/Score/")
-		.append(values.get("SCORE"));
-		return url;
+	// Template is set as an external io property.
+	public String formatPutURLTemplate(HashMap<String, String> values) {;
+		return String.format(
+				values.get("esbPutScoreTemplate"),
+				new Object[]{
+						values.get("apiPrefix"),
+						values.get("UNIQNAME"),
+						values.get("SCORE")
+				});
 	}
 
 	/************************** Check that can access ESB successfully *********************/
