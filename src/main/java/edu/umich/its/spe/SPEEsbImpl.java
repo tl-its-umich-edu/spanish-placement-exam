@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.json.JSONObject;
-
 import org.apache.http.HttpStatus;
 
 import org.slf4j.Logger;
@@ -98,21 +96,7 @@ public class SPEEsbImpl implements GradeIO {
 
 		spesummary.setCourseId(values.get("COURSEID"));
 
-		StringBuilder url = new StringBuilder();
-
-		// Assignment Title may contain blanks.  URLEncoder will form encode them as "+" but
-		// since the title ends up in the URL proper it must be fixed up to be % encoded.
-		try {
-			url.append(values.get("apiPrefix"))
-			.append("/Unizin/data/CourseId/")
-			.append(values.get("COURSEID"))
-			.append("/AssignmentTitle/")
-			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8").replaceAll("\\+", "%20")
-					);
-		} catch (UnsupportedEncodingException e) {
-			M_log.error("encoding exception in getGrades"+e);
-			throw(new GradeIOException("encoding exception in getGrades",e));
-		}
+		StringBuilder url = formatGetURL(values);
 
 		M_log.debug("getGrades: values:[" + values.toString() + "]");
 		M_log.debug("getGrades: request url: [" + url.toString() + "]");
@@ -130,10 +114,28 @@ public class SPEEsbImpl implements GradeIO {
 
 		if(M_log.isDebugEnabled()) {
 			M_log.debug(wrappedResult.toJson());
-			M_log.debug("spesummary: {}",spesummary);
 		}
 
 		return wrappedResult;
+	}
+
+	/* Put together the URL to get grades */
+	public StringBuilder formatGetURL(HashMap<String, String> values) throws GradeIOException {
+		StringBuilder url = new StringBuilder();
+
+		// Assignment Title may contain blanks.  URLEncoder will form encode them as "+" but
+		// since the title ends up in the URL proper it must be fixed up to be % encoded.
+		try {
+			url.append(values.get("apiPrefix"))
+			.append("/data/CourseId/")
+			.append(values.get("COURSEID"))
+			.append("/AssignmentTitle/")
+			.append(URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8").replaceAll("\\+", "%20"));
+		} catch (UnsupportedEncodingException e) {
+			M_log.error("encoding exception in getGrades"+e);
+			throw(new GradeIOException("encoding exception in getGrades",e));
+		}
+		return url;
 	}
 
 	/************************** put grades in MPathways *********************/
@@ -176,34 +178,18 @@ public class SPEEsbImpl implements GradeIO {
 		HashMap<String, String> headers = new HashMap<String, String>();
 		M_log.debug("user to update: " + user.toString());
 
-		HashMap<String,String> value = setupPutGradeCall(speproperties,user);
+		HashMap<String,String> values = setupPutGradeCall(speproperties,user);
 
-		headers.put("x-ibm-client-id", value.get("x-ibm-client-id"));
+		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
 
-		StringBuilder url = new StringBuilder();
-		url.append(value.get("apiPrefix"))
-		.append("/Unizin/UniqName/")
-		.append(value.get("UNIQNAME"))
-		.append("/Score/")
-		.append(value.get("SCORE"));
+		StringBuilder url = formatPutURL(values);
 
-		M_log.debug("putGrades: value:[" + value.toString() + "]");
+		M_log.debug("putGrades: value:[" + values.toString() + "]");
 		M_log.debug("putGrades: request url: [" + url.toString() + "]");
 		M_log.debug("putGrades: headers: [" + headers.toString() + "]");
 
-		WAPI wapi = new WAPI(value);
+		WAPI wapi = new WAPI(values);
 		WAPIResultWrapper wrappedResult = null;
-
-		// For testing allow skipping update of MPathways
-		/// check for not true.
-//		M_log.debug("skipiGradeUpdate: {}",value.get("skipGradeUpdate"));
-//		if (value.get("skipGradeUpdate") == null || !"true".equals(value.get("skipGradeUpdate").toLowerCase())) {
-//			wrappedResult = wapi.doPutRequest(url.toString(), headers);
-//		} else {
-//			String msg = "{error: " + SKIP_GRADE_UPDATE + " for " + value.get("UNIQNAME") + "}";
-//			M_log.error("skip msg: " + msg);
-//			wrappedResult = new WAPIResultWrapper(WAPI.HTTP_UNKNOWN_ERROR, SKIP_GRADE_UPDATE, new JSONObject(msg));
-//		}
 
 		wrappedResult = wapi.doPutRequest(url.toString(), headers);
 
@@ -212,6 +198,16 @@ public class SPEEsbImpl implements GradeIO {
 		return wrappedResult;
 	}
 
+	// Put together the URL to update the user's score in MPathways
+	public StringBuilder formatPutURL(HashMap<String, String> values) {
+		StringBuilder url = new StringBuilder();
+		url.append(values.get("apiPrefix"))
+		.append("/UniqName/")
+		.append(values.get("UNIQNAME"))
+		.append("/Score/")
+		.append(values.get("SCORE"));
+		return url;
+	}
 
 	/************************** Check that can access ESB successfully *********************/
 	// All this does is renew the current token, but that is sufficient to check that the
