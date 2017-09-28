@@ -40,7 +40,6 @@ public class SPEEsbImpl implements GradeIO {
 	SPESummary spesummary;
 
 	// No arg constructor for use in SpringApp.
-
 	public SPEEsbImpl() {
 		super();
 	}
@@ -53,13 +52,11 @@ public class SPEEsbImpl implements GradeIO {
 		this.spesummary = spesummary;
 	}
 
-	// Keys of properties that must be provided for our ESB queries.
-	static final List<String> defaultKeys = (List<String>) Arrays.asList("tokenServer", "apiPrefix", "key", "secret",
-			"scope", "x-ibm-client-id");
+//	// Keys of properties that must be provided for our ESB queries.
+//	static final List<String> defaultKeys = (List<String>) Arrays.asList("tokenServer", "apiPrefix", "key", "secret",
+//			"scope", "x-ibm-client-id");
 
-	/**************************
-	 * get grades from data warehouse
-	 *********************/
+	/******************** Get grades from ESB (Unizin Data Warehouse) ******************/
 
 	protected HashMap<String, String> setupGetGradesCall(SPEProperties speproperties,String gradedAfterTime) {
 		M_log.debug("spe properties: "+speproperties);
@@ -70,39 +67,21 @@ public class SPEEsbImpl implements GradeIO {
 		return value;
 	}
 
-	// Extend the properties list for the properties that get grade requests
-	// require.
-	public List<String> setupGetGradePropertyValues() {
-
-		List<String> keys = new ArrayList<>(defaultKeys);
-
-		// add gradedaftertime as a property for testing and defaulting.
-		keys.add("gradedaftertime");
-		keys.add("COURSEID");
-		keys.add("ASSIGNMENTTITLE");
-
-		return keys;
-	}
-
-
-	// Go get the SPE grades
-
 	public WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
-		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
+
 		HashMap<String, String> values = setupGetGradesCall(speproperties,gradedAfterTime);
+		M_log.debug("getGrades: values:[" + values.toString() + "]");
 
-		HashMap<String, String> headers = new HashMap<String, String>();
-
-		headers.put("gradedAfterTime", values.get("gradedaftertime"));
-		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
-
+		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
 		spesummary.setCourseId(values.get("COURSEID"));
 
-		String url = formatGetURLTemplate(values);
-
-		M_log.debug("getGrades: values:[" + values.toString() + "]");
-		M_log.debug("getGrades: request url: [" + url.toString() + "]");
+		HashMap<String, String> headers = new HashMap<String, String>();
+		headers.put("gradedAfterTime", values.get("gradedaftertime"));
+		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
 		M_log.debug("getGrades: headers: [" + headers.toString() + "]");
+
+		String url = formatGetURLTemplate(values);
+		M_log.debug("getGrades: request url: [" + url.toString() + "]");
 
 		WAPI wapi = new WAPI(values);
 
@@ -123,7 +102,7 @@ public class SPEEsbImpl implements GradeIO {
 
 	/* Put together the URL to get grades */
 
-	// Ensure the assignment title is ok and then really format
+	// Ensure the assignment title is ok and then really put the url together
 	public String formatGetURLTemplate(HashMap<String, String> values) throws GradeIOException {
 		try {
 			values.put("ASSIGNMENTTITLE",
@@ -149,53 +128,40 @@ public class SPEEsbImpl implements GradeIO {
 
 	/************************** put grades in MPathways *********************/
 
-	// Add to the properties list the properties that put grade requests will
-	// require.
-	public List<String> setupPutGradePropertyValues() {
-
-		List<String> keys = new ArrayList<>(defaultKeys);
-
-		keys.add("UNIQNAME");
-		keys.add("SCORE");
-
-		return keys;
-	}
-
 	protected HashMap<String, String> setupPutGradeCall(SPEProperties speproperties,HashMap<?, ?> user) {
 		M_log.debug("spe properties: "+speproperties);
 		M_log.debug("sPGC: user: {}",user);
 
-		HashMap<String,String> value = new HashMap<String,String>();
-		value.putAll(speproperties.getIo());
+		HashMap<String,String> values = new HashMap<String,String>();
+		values.putAll(speproperties.getIo());
 
 		// if no user then use default values (for testing).
 		if (user == null || user.isEmpty()) {
-			value.putAll(speproperties.getPutgrades());
+			values.putAll(speproperties.getPutgrades());
 		}
 		else {
-			value.put("SCORE",(String) user.get("Score"));
-			value.put("UNIQNAME",(String) user.get("Unique_Name"));
+			values.put("SCORE",(String) user.get("Score"));
+			values.put("UNIQNAME",(String) user.get("Unique_Name"));
 		}
 
-		return value;
+		return values;
 	}
 
 	// Put a single score in MPathways
 
 	@Override
 	public WAPIResultWrapper putGradeVia(SPEProperties speproperties,HashMap<?, ?> user) {
-		HashMap<String, String> headers = new HashMap<String, String>();
 		M_log.debug("user to update: " + user.toString());
 
 		HashMap<String,String> values = setupPutGradeCall(speproperties,user);
+		M_log.debug("putGrades: value:[" + values.toString() + "]");
 
+		HashMap<String, String> headers = new HashMap<String, String>();
 		headers.put("x-ibm-client-id", values.get("x-ibm-client-id"));
+		M_log.debug("putGrades: headers: [" + headers.toString() + "]");
 
 		String url = formatPutURLTemplate(values);
-
-		M_log.debug("putGrades: value:[" + values.toString() + "]");
 		M_log.debug("putGrades: request url: [" + url.toString() + "]");
-		M_log.debug("putGrades: headers: [" + headers.toString() + "]");
 
 		WAPI wapi = new WAPI(values);
 		WAPIResultWrapper wrappedResult = null;
