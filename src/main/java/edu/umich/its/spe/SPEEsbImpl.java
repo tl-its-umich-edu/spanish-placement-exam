@@ -2,23 +2,19 @@ package edu.umich.its.spe;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.http.HttpStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import edu.umich.ctools.esb.utils.WAPI;
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
-import lombok.Data;
-import lombok.Setter;
 
 /*
  * Implement esb calls to get / put grade information.
@@ -51,10 +47,6 @@ public class SPEEsbImpl implements GradeIO {
 		super();
 		this.spesummary = spesummary;
 	}
-
-//	// Keys of properties that must be provided for our ESB queries.
-//	static final List<String> defaultKeys = (List<String>) Arrays.asList("tokenServer", "apiPrefix", "key", "secret",
-//			"scope", "x-ibm-client-id");
 
 	/******************** Get grades from ESB (Unizin Data Warehouse) ******************/
 
