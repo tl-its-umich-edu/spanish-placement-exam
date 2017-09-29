@@ -88,6 +88,20 @@ where it fails and then auto-deploys again either cancel the
 deployment from the deployment configuration page or just reduce the
 number of pods on that page to 0.
 
+The code expects a mail server to be available.  A mail server is available
+in the UM OpenShift environment.  When running locally a debugging mail server
+can be started with the command:
+
+<code>    python -m smtpd -d -n -c DebuggingServer localhost:1025 & </code>
+
+Verify that the local profile for application-???.properties has the proper
+mail server host and port.  
+
+# Input and Output
+SPE gets data from the SPE application in the IBM ESB.  It also
+maintains a small disk file storing the most recent time that it requested
+grade information.
+
 ## Logs
 
 Logs are available in the pods created by the cronjob.  The

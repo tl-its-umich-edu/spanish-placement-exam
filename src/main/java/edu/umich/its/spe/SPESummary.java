@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -37,8 +38,11 @@ public class SPESummary {
 	private LocalDateTime startTime = LocalDateTime.now();
 	private LocalDateTime endTime;
 
-	// record grade retrieval timestamps for the value that was already stored,
-	// the (computed) value that was used, and the value to be stored for next time.
+	// Save the grade retrieval timestamps for:
+	// the value that was already stored by a previous run (if any),
+	// the, possibly computed, value that was actually used for the query,
+	// and the value to be stored for next time.
+
 	// String is a suitable format since these are only used in the report.
 
 	private String storedGradesLastRetrieved = new String();
@@ -48,13 +52,13 @@ public class SPESummary {
 	// id of the canvas course used as grade source
 	private String courseId = new String();
 
-	// Keep list of user names and processing success.
+	// Keep list of user names and processing success status.
+
 	private List<Pair<String, Boolean>> users  = new ArrayList<Pair<String,Boolean>>();
 	private int added = 0;
 	private int errors = 0;
 
 	public SPESummary appendUser(String name,Boolean success) {
-		// add user and update counts.
 		users.add(Pair.of(name,success));
 		if (success) {
 			added++;
@@ -65,16 +69,28 @@ public class SPESummary {
 		return this;
 	}
 
+	// Return a copy of the user list sorted by the name string. The original user list is unchanged.
+	// This method is separate for easy testing.
+
+	protected List<Pair<String, Boolean>> sortedUsers() {
+		// use Java 8 streams and lambda
+		return users.stream()
+				.sorted((u1, u2) -> u1.getLeft().compareTo(u2.getLeft()))
+				.collect(Collectors.toList());
+	}
+
+	// Produce a processing summary report in a single string.
 	public String toString() {
 
-		// automatically set the end time to time when generate report string.
+		// Automatically set the report end time to the time when generate report string.
 
 		endTime = LocalDateTime.now();
 		StringBuffer result = new StringBuffer();
 
 		Duration dur = Duration.between(startTime, endTime);
 
-		// make sure there is a printable value even if no course id (when testing).
+		// make sure there is a printable value for course id even if used file IO to get users.
+
 		String courseIdString = courseId.toString().length() > 0 ? courseId.toString() : "[none]";
 
 		result.append(LINE_RETURN);
@@ -95,7 +111,10 @@ public class SPESummary {
 		result.append("users added: ").append(added).append(" errors: ").append(errors).append(LINE_RETURN);
 		result.append(LINE_RETURN);
 
-		users.forEach((u) -> result
+
+		// for each user (in sorted order) add an entry to the result string.
+		sortedUsers()
+		.forEach((u) -> result
 				.append("user: ").append(u.getLeft())
 				.append(" success: ").append(u.getRight())
 				.append(LINE_RETURN));
