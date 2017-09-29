@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.*;
 
 /*
  * SPE Summary holds data to be used in summary reporting.
- * 
+ *
  * Will skip basic setter getter testing for Lombok fields.
  */
 
@@ -34,29 +34,29 @@ public class SPESummaryTest {
 	}
 
 	SPESummary ss = null;
-	
 
-	// One sanity check test of simple string setter getter.  We'll trust lombok 
+
+	// One sanity check test of simple string setter getter.  We'll trust lombok
 	// but will do a little verification.
 	@Test
 	public void checkLastDateFound() {
 		ss.setStoredGradesLastRetrieved("LASTDATE");
 		assertEquals("saved date","LASTDATE",ss.getStoredGradesLastRetrieved());
 	}
-	
-	@Test 
+
+	@Test
 	public void checkEmptyUserList() {
 		List<Pair<String,Boolean>> users = ss.getUsers();
 		assertNotNull("got some list from users",users);
 		assertEquals("empty list",0,users.size());
 	}
-	
+
 	@Test
 	public void addOneUser() {
 		ss.appendUser("user 1",true);
 		assertEquals("list of 1",1,ss.getUsers().size());
 	}
-	
+
 	@Test
 	public void addThreeUsers() {
 		ss.appendUser("user 1",true);
@@ -64,51 +64,51 @@ public class SPESummaryTest {
 		ss.appendUser("user 3",true);
 		assertEquals("list of 3",3,ss.getUsers().size());
 	}
-	
+
 	@Test
 	public void addThreeUsersFluent() {
 		ss.appendUser("user 1",true).appendUser("user 2",false).appendUser("user 3",true);
 		assertEquals("list of 3",3,ss.getUsers().size());
 	}
-	
-//	@Test
-//	public void checkToStringWithUsers() {
-//		ss.appendUser("user 1",true).appendUser("user 2",true).appendUser("user 3",true);
-//		String tos = ss.toString();
-//		assertNotNull("some string",tos);
-//	}
-	
-//	@Test
-//	public void checkToStringFormatLastDateFoundEmpty() {
-//		ss.appendUser("user 1",true).appendUser("user 2",true).appendUser("user 3",true);
-//		String tos = ss.getStoredGradesLastRetrieved().toString();
-//		assertEquals("what?","",tos);
-//	}
-	
+
+	//	@Test
+	//	public void checkToStringWithUsers() {
+	//		ss.appendUser("user 1",true).appendUser("user 2",true).appendUser("user 3",true);
+	//		String tos = ss.toString();
+	//		assertNotNull("some string",tos);
+	//	}
+
+	//	@Test
+	//	public void checkToStringFormatLastDateFoundEmpty() {
+	//		ss.appendUser("user 1",true).appendUser("user 2",true).appendUser("user 3",true);
+	//		String tos = ss.getStoredGradesLastRetrieved().toString();
+	//		assertEquals("what?","",tos);
+	//	}
+
 	@Test
 	public void checkToStringDateField() {
 		ss.setUseGradesLastRetrieved("MALTA");
 		String tos = ss.getUseGradesLastRetrieved().toString();
 		assertEquals("expected string","MALTA",tos);
 	}
-	
+
 	@Test
 	public void checkDateString() {
 		ss.setStoredGradesLastRetrieved("HI");
 		ss.setUseGradesLastRetrieved("NOW");
 		ss.setUpdatedGradesLastRetrieved("BYE");
-		
+
 		String tos = ss.toString();
 
 		assertThat("find storedGradesLastRetrieved",tos,containsString("storedGradesLastRetrieved: HI"));
 		assertThat("find updatedGradesLastRetrieved",tos,containsString("updatedGradesLastRetrieved: BYE"));
 		assertThat("find useGradesLastRetrieved",tos,containsString("useGradesLastRetrieved: NOW"));
 	}
-	
+
 	@Test
 	public void checkUserFormatting() {
 		ss.appendUser("user 1",true).appendUser("user 2",false).appendUser("user 3",true);
-		
+
 		String tos = ss.toString();
 
 		System.out.println("tos: "+tos);
@@ -118,10 +118,10 @@ public class SPESummaryTest {
 		assertThat("added 2 users",tos,containsString("users added: 2"));
 		assertThat("failed 1 user",tos,containsString("errors: 1"));
 	}
-	
+
 	@Test
 	public void checkCombinedFormatting() {
-		
+
 		ss.appendUser("user 2",false);
 		ss.setUpdatedGradesLastRetrieved("BYE");
 		String tos = ss.toString();
@@ -129,6 +129,42 @@ public class SPESummaryTest {
 		assertThat("find user 2",tos,containsString("user: user 2 success: false"));
 		assertThat("find updatedGradesLastRetrieved",tos,containsString("updatedGradesLastRetrieved: BYE"));
 	}
-	
-	
+
+	/////////////////// Check that sort list of user results by user name.
+
+	@Test
+	public void checkSortUsersEmpty() {
+		List<Pair<String, Boolean>> sortedUsers;
+
+		assertEquals("list of 0",0,ss.getUsers().size());
+
+		sortedUsers = ss.sortedUsers();
+		assertEquals("sorted list of 0",0,sortedUsers.size());
+	}
+
+	@Test
+	public void checkSortUsers1() {
+		List<Pair<String, Boolean>> sortedUsers;
+
+		ss.appendUser("user C",true);
+		assertEquals("list of 1",1,ss.getUsers().size());
+
+		sortedUsers = ss.sortedUsers();
+		assertThat("user C in sorted order",sortedUsers.get(0).getLeft(),equalTo("user C"));
+	}
+
+	@Test
+	public void checkSortUsers3() {
+		List<Pair<String, Boolean>> sortedUsers;
+
+		ss.appendUser("user C",true);
+		ss.appendUser("user B",false);
+		ss.appendUser("user A",true);
+		assertEquals("list of 3",3,ss.getUsers().size());
+
+		sortedUsers = ss.sortedUsers();
+		assertThat("user A in sorted order",sortedUsers.get(0).getLeft(),equalTo("user A"));
+		assertThat("user B in sorted order",sortedUsers.get(1).getLeft(),equalTo("user B"));
+		assertThat("user C in sorted order",sortedUsers.get(2).getLeft(),equalTo("user C"));
+	}
 }
