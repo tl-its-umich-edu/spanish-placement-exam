@@ -8,7 +8,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	FileIOTest.class, PersistBlobImplTest.class, PersistTimestampTest.class,
 	SPEEsbPropertiesTest.class,
-	SPEMasterProcessGradeTest.class, SPESummaryTest.class })
+	SPEMasterProcessGradeTest.class, SPESummaryTest.class,SPEEsbImplURLFormatTest.class  })
 public class ASuiteOfMethodTests {
 
 }
