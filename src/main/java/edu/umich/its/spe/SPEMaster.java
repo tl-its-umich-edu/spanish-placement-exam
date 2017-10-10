@@ -74,8 +74,7 @@ public class SPEMaster {
 	// day = 86,400 seconds.
 
 	// Pattern to detect if score is in right format.
-	public static Pattern scoreRegexPattern = Pattern.compile("^\\d\\d\\d\\d\\.\\d$");
-
+	public static Pattern scoreRegexPattern = Pattern.compile("^\\d+\\.\\d$");
 
 	public SPEMaster() {
 		super();
