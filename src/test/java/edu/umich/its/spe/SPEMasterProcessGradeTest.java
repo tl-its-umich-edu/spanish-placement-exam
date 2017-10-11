@@ -29,6 +29,7 @@ public class SPEMasterProcessGradeTest {
 
 	String assignmentJSON_A = "{\"Score\":1721.5,\"Published_Score\":1721.5,\"User_Id\":137734728828958800,\"Finished_At\":\"2017-04-26T14:38:46.809-04:00\",\"Unique_Name\":\"studentc\"}";
 	String assignmentJSON_B = "{\"Score\":1320,\"Published_Score\":1320,\"User_Id\":-296951127543716860,\"Finished_At\":\"2017-04-26T14:10:54.188-04:00\",\"Unique_Name\":\"studentd\"}";
+	String assignmentJSON_C = "{\"Score\":945.5,\"Published_Score\":945.5,\"User_Id\":-296951127543716860,\"Finished_At\":\"2017-04-26T14:10:54.188-04:00\",\"Unique_Name\":\"studentd\"}";
 
 	SPEMaster spe = null;
 
@@ -69,6 +70,16 @@ public class SPEMasterProcessGradeTest {
 		String score = gradeMap.get("Score");
 		assertTrue("score requires 1 decimal place: ["+score+"]",SPEMaster.scoreRegexPattern.matcher(score).matches());
 		assertEquals("score:","1320.0",score);
+		assertEquals("uniqname:","studentd",gradeMap.get("Unique_Name"));
+	}
+
+	@Test
+	public void testConvertAssignmentCToGradeMap() throws JSONException {
+		JSONObject jo = new JSONObject(assignmentJSON_C);
+		HashMap<String, String> gradeMap = SPEMaster.convertAssignmentToGradeMap(jo);
+		String score = gradeMap.get("Score");
+		assertTrue("allow score with >4 numbers before decimal: ["+score+"]",SPEMaster.scoreRegexPattern.matcher(score).matches());
+		assertEquals("score:","945.5",score);
 		assertEquals("uniqname:","studentd",gradeMap.get("Unique_Name"));
 	}
 
