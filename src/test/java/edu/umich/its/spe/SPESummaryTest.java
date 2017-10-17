@@ -132,39 +132,39 @@ public class SPESummaryTest {
 
 	/////////////////// Check that sort list of user results by user name.
 
-		@Test
-		public void checkSortUsersEmpty() {
-			List<Pair<String, Boolean>> sortedUsers;
+	@Test
+	public void checkSortUsersEmpty() {
+		List<Pair<String, Boolean>> sortedUsers;
 
-			assertEquals("list of 0",0,ss.getUsers().size());
+		assertEquals("list of 0",0,ss.getUsers().size());
 
-			sortedUsers = ss.sortedUsers();
-			assertEquals("sorted list of 0",0,sortedUsers.size());
-		}
+		sortedUsers = ss.sortedUsers();
+		assertEquals("sorted list of 0",0,sortedUsers.size());
+	}
 
-		@Test
-		public void checkSortUsers1() {
-			List<Pair<String, Boolean>> sortedUsers;
+	@Test
+	public void checkSortUsers1() {
+		List<Pair<String, Boolean>> sortedUsers;
 
-			ss.appendUser("user C",true);
-			assertEquals("list of 1",1,ss.getUsers().size());
+		ss.appendUser("user C",true);
+		assertEquals("list of 1",1,ss.getUsers().size());
 
-			sortedUsers = ss.sortedUsers();
-			assertThat("user C in sorted order",sortedUsers.get(0).getLeft(),equalTo("user C"));
-		}
+		sortedUsers = ss.sortedUsers();
+		assertThat("user C in sorted order",sortedUsers.get(0).getLeft(),equalTo("user C"));
+	}
 
-		@Test
-		public void checkSortUsers3() {
-			List<Pair<String, Boolean>> sortedUsers;
+	@Test
+	public void checkSortUsers3() {
+		List<Pair<String, Boolean>> sortedUsers;
 
-			ss.appendUser("user C",true);
-			ss.appendUser("user B",false);
-			ss.appendUser("user A",true);
-			assertEquals("list of 3",3,ss.getUsers().size());
+		ss.appendUser("user C",true);
+		ss.appendUser("user B",false);
+		ss.appendUser("user A",true);
+		assertEquals("list of 3",3,ss.getUsers().size());
 
-			sortedUsers = ss.sortedUsers();
-			assertThat("user A in sorted order",sortedUsers.get(0).getLeft(),equalTo("user A"));
-			assertThat("user B in sorted order",sortedUsers.get(1).getLeft(),equalTo("user B"));
-			assertThat("user C in sorted order",sortedUsers.get(2).getLeft(),equalTo("user C"));
-		}
+		sortedUsers = ss.sortedUsers();
+		assertThat("user A in sorted order",sortedUsers.get(0).getLeft(),equalTo("user A"));
+		assertThat("user B in sorted order",sortedUsers.get(1).getLeft(),equalTo("user B"));
+		assertThat("user C in sorted order",sortedUsers.get(2).getLeft(),equalTo("user C"));
+	}
 }
