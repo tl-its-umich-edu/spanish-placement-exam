@@ -15,6 +15,7 @@ package edu.umich.its.spe;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,7 @@ public class SPESummary {
 	// the, possibly computed, value that was actually used for the query,
 	// and the value to be stored for next time.
 
+
 	// String is a suitable format since these are only used in the report.
 
 	private String storedGradesLastRetrieved = new String();
@@ -54,9 +56,30 @@ public class SPESummary {
 
 	// Keep list of user names and processing success status.
 
+
 	private List<Pair<String, Boolean>> users  = new ArrayList<Pair<String,Boolean>>();
 	private int added = 0;
 	private int errors = 0;
+
+	// Empty the object so it can be used anew for the next run.  Used auto-wiring to
+	// get the same object everywhere it is needed.  May not be the best choice if
+	// if using the internal wait and restart approach to cron jobs.
+
+	public void reset() {
+		startTime = LocalDateTime.now();
+		endTime = null;
+
+		storedGradesLastRetrieved = new String();
+		useGradesLastRetrieved = new String();
+		updatedGradesLastRetrieved  = new String();
+
+		courseId = new String();
+
+		users  = new ArrayList<Pair<String,Boolean>>();
+		added = 0;
+		errors = 0;
+
+	}
 
 	public SPESummary appendUser(String name,Boolean success) {
 		users.add(Pair.of(name,success));

@@ -47,13 +47,14 @@ public class SPEMaster {
 	static final Logger M_log = LoggerFactory.getLogger(SPEMaster.class);
 
 	// Keep maps of (some) specific sets of properties.
+	// Inject a single copy to share.  The contents will need to be reset each iteration of the script.
+	@Autowired
+	private SPESummary spesummary;
+
 	// The name of the map corresponds to the prefix of the associated properties in the properties file.
 	static HashMap<String,String> unirestMap;
 	static HashMap<String,String> emailMap;
 	static HashMap<String,String> repeatMap;
-
-	// Need to make a new copy for every run.
-	private SPESummary spesummary;
 
 	// Let Spring inject the properties, the esb service, and the persistString implementation.
 	@Autowired
@@ -143,6 +144,9 @@ public class SPEMaster {
 			throw new GradeIOException("Unable to connect to ESB");
 		}
 
+		// Reset the summary object with each iteration.
+		spesummary.reset();
+
 		//// Get the time from which to request grades.
 		String priorUpdateTime = persisttimestamp.ensureLastGradeTransferTime();
 
@@ -154,7 +158,7 @@ public class SPEMaster {
 
 		LocalDateTime currentGradeRetrievalTime = LocalDateTime.now();
 
-		spesummary = new SPESummary();
+
 
 		try {
 			assignmentsFromDW = getSPEGrades(speproperties,priorUpdateTime);
