@@ -160,7 +160,7 @@ public class SPEEsbImpl implements GradeIO {
 
 		wrappedResult = wapi.doPutRequest(url.toString(), headers);
 
-		M_log.info(wrappedResult.toJson());
+		M_log.debug("putGrade result: {}",wrappedResult.toJson());
 
 		return wrappedResult;
 	}

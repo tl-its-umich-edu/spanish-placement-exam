@@ -93,7 +93,7 @@ public class GradeIOWrapper implements GradeIO {
 	// Verify the IO connection.  Currently a NO OP.
 	@Override
 	public boolean verifyConnection(SPEProperties speproperties) {
-		M_log.error("verifyConnection: FIX ME: always returns true right now.");
+		M_log.info("verifyConnection: DUMMY: always returns true right now.");
 		//return speesb.verifyESBConnection(speproperties);
 		return true;
 	}
