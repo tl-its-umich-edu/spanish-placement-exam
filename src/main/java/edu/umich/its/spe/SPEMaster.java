@@ -79,7 +79,7 @@ public class SPEMaster {
 
 	public SPEMaster() {
 		super();
-		M_log.info("SPEMaster: this: "+this.toString());
+		M_log.debug("SPEMaster: this: "+this.toString());
 	}
 
 	// Normalize the global email setting
@@ -98,9 +98,9 @@ public class SPEMaster {
 	// Set global timeouts for EBS calls
 	protected void setUnirestGlobalValues() {
 
-		M_log.info("setupUnirestGlobalValues");
+		M_log.debug("setupUnirestGlobalValues");
 		unirestMap = speproperties.getUnirest();
-		M_log.info("unirest properties: {}",unirestMap);
+		M_log.debug("unirest properties: {}",unirestMap);
 
 		// Setup values for request timeouts.
 		long ct = longFromStringWithDefault(unirestMap.get("connectionTimeout"), 10000l);
@@ -114,7 +114,7 @@ public class SPEMaster {
 	// Get a long value from a string use default if the string is null or empty.
 	protected long longFromStringWithDefault(String longString, Long defaultValue) {
 		long longValue = (longString == null ? defaultValue : Long.parseLong(longString));
-		M_log.info("longFromString: {} {}",longString,longValue);
+		M_log.debug("longFromString: {} {}",longString,longValue);
 		return longValue;
 	}
 
@@ -410,7 +410,7 @@ public class SPEMaster {
 			String user = pPESR.getString("ID");
 			M_log.info("putGrade: updated MPathways for user: "+user);
 		} catch (JSONException e) {
-			M_log.error("error extracting grade update user for: "+putGrade.toJson());
+			M_log.debug("exception extracting grade update user data: {} exception: {}",putGrade.toJson(),e);
 		}
 	}
 
@@ -438,15 +438,13 @@ public class SPEMaster {
 
 		WAPIResultWrapper wrappedResult = gradeio.putGradeVia(speproperties,user);
 
-		M_log.info("update: {}",wrappedResult.toJson());
-
 		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
 			success = true;
 		}
 
 		spesummary.appendUser((String) user.get("Unique_Name"), success);
-		M_log.info("grade update response: "+wrappedResult.toJson());
+		M_log.info("grade update user: {} response: {}",user,wrappedResult.toJson());
 		return success;
 	}
 
