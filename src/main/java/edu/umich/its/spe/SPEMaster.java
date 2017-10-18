@@ -350,9 +350,11 @@ public class SPEMaster {
 	// convert a single JSON version of an assignment to a grademap.
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
-		String score = JSONObject.valueToString(assignment.get("Score"));
 
-		// Some scores don't have decimal places.  They all should.  Assuming that missing decimal place
+		//Published_Score
+		String score = JSONObject.valueToString(assignment.get("Published_Score"));
+
+		// Some scores don't have decimal places.  They all should.  Assuming that a missing decimal place
 		// because of formatting as a number somewhere.
 		if (!scoreRegexPattern.matcher(score).matches()) {
 			score += ".0";
