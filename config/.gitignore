@@ -3,4 +3,6 @@
 #*.properties
 security.*properties
 security.*yml
+application-*INTEGRATION.properties
+
 #end
