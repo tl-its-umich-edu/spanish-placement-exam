@@ -43,7 +43,7 @@ public class SimpleJavaEmail {
 			}
 		}
 
-		M_log.info("final extracted properties: {}",extractedProperties);
+		M_log.info("final extracted properties: prefix: {} properties: {}",propertyNamePrefix,extractedProperties);
 		return extractedProperties;
 	}
 

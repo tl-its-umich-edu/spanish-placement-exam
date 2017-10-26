@@ -100,7 +100,7 @@ public class FileIO implements GradeIO {
 
 		String fileName = getIoProperty(speproperties, "putGradeIO");
 
-		M_log.info("putGrade: updated {} for user: {}",fileName,user.toString());
+		M_log.debug("putGrade: updated {} for user: {}",fileName,user.toString());
 		File file = new File(fileName);
 
 		try {

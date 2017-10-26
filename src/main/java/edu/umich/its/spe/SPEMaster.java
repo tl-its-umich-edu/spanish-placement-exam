@@ -47,13 +47,14 @@ public class SPEMaster {
 	static final Logger M_log = LoggerFactory.getLogger(SPEMaster.class);
 
 	// Keep maps of (some) specific sets of properties.
+	// Inject a single copy to share.  The contents will need to be reset each iteration of the script.
+	@Autowired
+	private SPESummary spesummary;
+
 	// The name of the map corresponds to the prefix of the associated properties in the properties file.
 	static HashMap<String,String> unirestMap;
 	static HashMap<String,String> emailMap;
 	static HashMap<String,String> repeatMap;
-
-	// Need to make a new copy for every run.
-	private SPESummary spesummary;
 
 	// Let Spring inject the properties, the esb service, and the persistString implementation.
 	@Autowired
@@ -74,12 +75,11 @@ public class SPEMaster {
 	// day = 86,400 seconds.
 
 	// Pattern to detect if score is in right format.
-	public static Pattern scoreRegexPattern = Pattern.compile("^\\d\\d\\d\\d\\.\\d$");
-
+	public static Pattern scoreRegexPattern = Pattern.compile("^\\d+\\.\\d$");
 
 	public SPEMaster() {
 		super();
-		M_log.info("SPEMaster: this: "+this.toString());
+		M_log.debug("SPEMaster: this: "+this.toString());
 	}
 
 	// Normalize the global email setting
@@ -98,9 +98,9 @@ public class SPEMaster {
 	// Set global timeouts for EBS calls
 	protected void setUnirestGlobalValues() {
 
-		M_log.info("setupUnirestGlobalValues");
+		M_log.debug("setupUnirestGlobalValues");
 		unirestMap = speproperties.getUnirest();
-		M_log.info("unirest properties: {}",unirestMap);
+		M_log.debug("unirest properties: {}",unirestMap);
 
 		// Setup values for request timeouts.
 		long ct = longFromStringWithDefault(unirestMap.get("connectionTimeout"), 10000l);
@@ -114,7 +114,7 @@ public class SPEMaster {
 	// Get a long value from a string use default if the string is null or empty.
 	protected long longFromStringWithDefault(String longString, Long defaultValue) {
 		long longValue = (longString == null ? defaultValue : Long.parseLong(longString));
-		M_log.info("longFromString: {} {}",longString,longValue);
+		M_log.debug("longFromString: {} {}",longString,longValue);
 		return longValue;
 	}
 
@@ -144,6 +144,9 @@ public class SPEMaster {
 			throw new GradeIOException("Unable to connect to ESB");
 		}
 
+		// Reset the summary object with each iteration.
+		spesummary.reset();
+
 		//// Get the time from which to request grades.
 		String priorUpdateTime = persisttimestamp.ensureLastGradeTransferTime();
 
@@ -155,7 +158,7 @@ public class SPEMaster {
 
 		LocalDateTime currentGradeRetrievalTime = LocalDateTime.now();
 
-		spesummary = new SPESummary();
+
 
 		try {
 			assignmentsFromDW = getSPEGrades(speproperties,priorUpdateTime);
@@ -347,9 +350,11 @@ public class SPEMaster {
 	// convert a single JSON version of an assignment to a grademap.
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
-		String score = JSONObject.valueToString(assignment.get("Score"));
 
-		// Some scores don't have decimal places.  They all should.  Assuming that missing decimal place
+		//Published_Score
+		String score = JSONObject.valueToString(assignment.get("Published_Score"));
+
+		// Some scores don't have decimal places.  They all should.  Assuming that a missing decimal place
 		// because of formatting as a number somewhere.
 		if (!scoreRegexPattern.matcher(score).matches()) {
 			score += ".0";
@@ -405,7 +410,7 @@ public class SPEMaster {
 			String user = pPESR.getString("ID");
 			M_log.info("putGrade: updated MPathways for user: "+user);
 		} catch (JSONException e) {
-			M_log.error("error extracting grade update user for: "+putGrade.toJson());
+			M_log.debug("exception extracting grade update user data: {} exception: {}",putGrade.toJson(),e);
 		}
 	}
 
@@ -433,15 +438,13 @@ public class SPEMaster {
 
 		WAPIResultWrapper wrappedResult = gradeio.putGradeVia(speproperties,user);
 
-		M_log.info("update: {}",wrappedResult.toJson());
-
 		if (wrappedResult.getStatus() == HttpStatus.SC_OK) {
 			logPutGrade(wrappedResult);
 			success = true;
 		}
 
 		spesummary.appendUser((String) user.get("Unique_Name"), success);
-		M_log.info("grade update response: "+wrappedResult.toJson());
+		M_log.info("grade update user: {} response: {}",user,wrappedResult.toJson());
 		return success;
 	}
 
