@@ -21,25 +21,29 @@ built in waits so that it will process input several times a day. This
 built in wait should be replaced by explicit cron functionality but the 
 options for that are current  limited in OpenShift.
 
-The job is nearly state-less.  
-* Scores are retrieved and updated
+The job is nearly state-less.
+
+ * Scores are retrieved and updated
 through an ESB API.  
-* Non-secure configuration is bundled with the
-application in properties files.
-* Secure information is provided through OpenShift
+ * Non-secure configuration is bundled with the
+application in properties files. 
+ * Secure information is provided through OpenShift
 Secrets. 
-* Summary information is logged and, when there grade
+ * Summary information is logged and, when there grade
 activity, is sent to the MCommunity group.
 
-A very small amount of disk storage is used to record the last request
-date.  This prevents continual re-processing of grades. 
+A very small amount of disk storage is used to record the most recent
+time that a user finished a test.  This is used as input to the query
+to get the next batch of test results so that tests are not processed
+multiple times.
 See SPECIAL FEATURES for details.
  
 
 # Running SPE
 
 SPE is configured to run on OpenShift.  Projects and running instances
-are provided in the UM OpenShift instance.
+are provided in the UM OpenShift instance.  Only one SPE pod should
+be run per project.
 
 # Configuration / Properties
 
@@ -95,7 +99,18 @@ can be started with the command:
 <code>    python -m smtpd -d -n -c DebuggingServer localhost:1025 & </code>
 
 Verify that the local profile for application-???.properties has the proper
-mail server host and port.  
+mail server host and port.
+
+It is possible to configure SPE to independently read / write to files instead
+using the ESB.  This is useful for testing since we have very limited control 
+of the systems on the other side of the ESB.  See the properties files for 
+examples.
+
+# Development Scripts
+The *bin* directory contains the script *runDockerSPE.sh*. It will use Docker
+to build and run a local instance of SPE.  See the script to see how this is
+configured by default.  This is only used for local development so the
+documentation is sparse.
 
 # Input and Output
 SPE gets data from the SPE application in the IBM ESB.  It also
@@ -114,7 +129,7 @@ https://kibana.openshift.dsc.umich.edu/
 
 # OpenShift Considerations
 
-## Creating an SPE instance
+## Creating a new SPE instance
 A new instance of code should be based on the deployment and build
 configuration of the existing instances.  It is unlikely that a new
 instance will be required.  Updating an existing instance is covered
@@ -123,6 +138,10 @@ below.
 The disk volumes for the date persistence and for the OpenShift
 secrets need to be mounted explicitly.  This can be done in deployment
 configuration yaml or in the OpenShift UI.
+
+Each SPE project also contains a plain *bash* pod that mounts the disk 
+used to persist data.  This allows examining and updating the persisted data if 
+necessary.  See *SPECIAL TASKS* below.
 
 ## Updating a SPE instance
 
@@ -142,18 +161,26 @@ See the properties file section above for more details.
 
 # SPECIAL TASKS
 
-## Adjust the last retrieved date
+## Adjust the last test date
 
-In rare circumstances it may be necessary to reset the last queried
-date used by SPE.  The simplest approach is to create a new environment 
+The format of the last test date timestmap is ISO8601 compatible.  It need not 
+contain
+a T.  The time zone of the time stamp can be specified with an offset (or a 
+trailing Z for UTC).  If no time zone is provided the time stamp is assumed to 
+be in UTC.
+Note the test finished time stamp in the database is stored in UTC so if the 
+time
+needs to be overridden the time stamp 
+
+In rare circumstances it may be necessary to reset the last test time stamp 
+used by SPE.  The simplest approach is to create a new environment 
 variable for a deployment configuration with the required time stamp. 
 The variable name is: **getgrades_gradedaftertime** and value 
-should be a valid time stamp value in the format **2017-04-01 18:00:00**.  The 
-application should then re-deploy and use this value for the next run.  After 
+should be a valid time stamp value in the format specified above.  The 
+application should then re-deploy and use this value for the next run.  *After 
 the application runs it is important to delete that environment variable and 
 have
-the application re-deploy again.  The value of the environment variable rules, 
-os if it is not deleted that same value will be used every time the application 
-runs.
+the application re-deploy again.*  If the environment variable exists its value
+will always be the one used by SPE and tests will be reprocessed.
 
  
