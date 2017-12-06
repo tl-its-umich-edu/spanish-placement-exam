@@ -66,6 +66,8 @@ public class SPESummary {
 	// if using the internal wait and restart approach to cron jobs.
 
 	public void reset() {
+		// Instant is based on linux epoch time so it is unambigiously
+		// interpreted as UTC.
 		startTime = Instant.now();
 		endTime = null;
 

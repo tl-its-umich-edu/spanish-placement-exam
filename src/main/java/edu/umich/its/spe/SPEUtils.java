@@ -125,7 +125,7 @@ public class SPEUtils {
 
 	public static Instant convertTimeStampStringToInstant(String timestamp) {
 
-		// This puts the string in a standard format that should be parsable.
+		// This puts the string in a standard format that should be parseable.
 		String s = SPEUtils.normalizeStringTimestamp(timestamp);
 
 		Matcher mo = p_offset.matcher(timestamp);
@@ -142,7 +142,7 @@ public class SPEUtils {
 			}
 		}
 
-		// try default Instant parse.
+		// maybe the default Instant parse will work.
 		M_log.debug("try Instant");
 		try {
 			return Instant.parse(s);
@@ -150,7 +150,8 @@ public class SPEUtils {
 			M_log.warn("Instant.parse: Catch {} for timestamp: {}",exp,s);
 		}
 
-		M_log.error("timestamp to instant parsing failed: {}",s);
+		// Could not parse string timestamp.
+		M_log.error("timestamp conversion parsing failed: {}",s);
 		//TODO: throw exception?
 		return null;
 	}
