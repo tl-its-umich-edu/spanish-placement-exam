@@ -45,7 +45,7 @@ mkdir -p ${HOST_PERSIST}
 
 ## This provides the right mail host for running docker on a mac.
 SP_OVERRIDE=" --email.mail.host=docker.for.mac.localhost --email.mail.smtp.port=1025 "
-SP_PROFILES=" --spring.profiles.include=DBG,FILEIO,OS-dev "
+SP_PROFILES=" --spring.profiles.include=DBG,FILEIO,OS-dev,QAINTEGRATION "
 SP_SECRETS_DIR=" --spring.config.location=file:/opt/secrets/ "
 SP_ARGS=" ${SP_PROFILES} ${SP_SECRETS_DIR} ${SP_OVERRIDE} "
 
