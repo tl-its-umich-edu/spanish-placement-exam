@@ -38,7 +38,7 @@ public class SPEMaster {
 
 	static final Logger M_log = LoggerFactory.getLogger(SPEMaster.class);
 
-	public static final String SCORE = "Score";
+	public static final String SCORE = "Published_Score";
 	public static final String FINISHED_AT = "Finished_At";
 	public static final String UNIQUE_NAME = "Unique_Name";
 
