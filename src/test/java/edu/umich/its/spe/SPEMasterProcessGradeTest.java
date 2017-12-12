@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;

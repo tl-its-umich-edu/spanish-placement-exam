@@ -6,8 +6,6 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -24,7 +22,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import edu.umich.ctools.esb.utils.WAPI;
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 @RunWith(SpringJUnit4ClassRunner.class)

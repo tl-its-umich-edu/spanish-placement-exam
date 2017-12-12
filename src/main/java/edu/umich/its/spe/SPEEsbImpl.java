@@ -61,10 +61,17 @@ public class SPEEsbImpl implements GradeIO {
 
 	public WAPIResultWrapper getGradesVia(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
 
+		// gradedAfterTime must be in date time in UTC but without explicit timezone information.
+		// That is the format expected by the ESB API.
+
+		M_log.debug("incoming gradedAfterTime: {}",gradedAfterTime);
+		gradedAfterTime = gradedAfterTime.replaceFirst("T"," ");
+		M_log.info("use gradedAfterTime: {}",gradedAfterTime);
+
 		HashMap<String, String> values = setupGetGradesCall(speproperties,gradedAfterTime);
 		M_log.debug("getGrades: values:[" + values.toString() + "]");
 
-		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
+		spesummary.setUseTestLastTakenTime(SPEUtils.normalizeStringTimestamp(gradedAfterTime));
 		spesummary.setCourseId(values.get("COURSEID"));
 
 		HashMap<String, String> headers = new HashMap<String, String>();
@@ -80,7 +87,10 @@ public class SPEEsbImpl implements GradeIO {
 		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
 
 		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
-			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "+wrappedResult.getMessage();
+			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "
+						+wrappedResult.getMessage()
+						+" URL: "+ url.toString()
+						+" Headers: "+headers;
 			M_log.error(msg,wrappedResult.toString());
 			throw(new GradeIOException(msg));
 		}

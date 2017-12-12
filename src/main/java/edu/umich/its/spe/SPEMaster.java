@@ -1,14 +1,8 @@
 package edu.umich.its.spe;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.mashape.unirest.http.Unirest;
-
+import java.time.Instant;
 import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,15 +10,21 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
 
-import edu.umich.ctools.esb.utils.WAPIResultWrapper;
-
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.mashape.unirest.http.Unirest;
+
+import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 /*
  * Master class to run the Spanish Placement Exam script.
@@ -32,19 +32,15 @@ import org.json.JSONException;
  * See junit test files for sample data.
  */
 
-// TTD: (informal)
-
-// TASKS: (if not listed inline below)
-// TODO: implement message logging / reporting
-// TODO: figure out logging configuration. how set log level?
-// TODO: configuration should separate security and properties.
-// TODO: test error handling
-
-// Spring: make visible for auto wiring.
+// Spring: make class visible for auto wiring.
 @Component
 public class SPEMaster {
 
 	static final Logger M_log = LoggerFactory.getLogger(SPEMaster.class);
+
+	public static final String SCORE = "Published_Score";
+	public static final String FINISHED_AT = "Finished_At";
+	public static final String UNIQUE_NAME = "Unique_Name";
 
 	// Keep maps of (some) specific sets of properties.
 	// Inject a single copy to share.  The contents will need to be reset each iteration of the script.
@@ -92,7 +88,7 @@ public class SPEMaster {
 			alwaysMailReport = emailMap.get("alwaysMailReport").toUpperCase();
 		}
 		emailMap.put("alwaysMailReport", alwaysMailReport);
-        M_log.debug("alwaysMailReport: computed: {}",alwaysMailReport);
+		M_log.debug("alwaysMailReport: computed: {}",alwaysMailReport);
 	}
 
 	// Set global timeouts for EBS calls
@@ -103,19 +99,12 @@ public class SPEMaster {
 		M_log.debug("unirest properties: {}",unirestMap);
 
 		// Setup values for request timeouts.
-		long ct = longFromStringWithDefault(unirestMap.get("connectionTimeout"), 10000l);
-		long st = longFromStringWithDefault(unirestMap.get("socketTimeout"), 10000l);
+		long ct = SPEUtils.longFromStringWithDefault(unirestMap.get("connectionTimeout"), 10000l);
+		long st = SPEUtils.longFromStringWithDefault(unirestMap.get("socketTimeout"), 10000l);
 
 		M_log.info("unirest timeouts: connectionTimeout: {} socketTimeout: {}",ct,st);
 
 		Unirest.setTimeouts(ct,st);
-	}
-
-	// Get a long value from a string use default if the string is null or empty.
-	protected long longFromStringWithDefault(String longString, Long defaultValue) {
-		long longValue = (longString == null ? defaultValue : Long.parseLong(longString));
-		M_log.debug("longFromString: {} {}",longString,longValue);
-		return longValue;
 	}
 
 	/*********************** Read / write the values. *****************/
@@ -126,7 +115,6 @@ public class SPEMaster {
 	 * - get grades.
 	 * - translate to format for updates.
 	 * - send to MPathways.
-	 *
 	 */
 
 	/* Organize the task and handle errors */
@@ -148,17 +136,11 @@ public class SPEMaster {
 		spesummary.reset();
 
 		//// Get the time from which to request grades.
-		String priorUpdateTime = persisttimestamp.ensureLastGradeTransferTime();
+		Instant priorUpdateTime = persisttimestamp.ensureLastTestTakenTime();
 
-		// If edited then might have a new line added automatically.
-		priorUpdateTime = StringUtils.chomp(priorUpdateTime);
 		M_log.info("priorUpdateTime: [{}]",priorUpdateTime);
 
 		String assignmentsFromDW;
-
-		LocalDateTime currentGradeRetrievalTime = LocalDateTime.now();
-
-
 
 		try {
 			assignmentsFromDW = getSPEGrades(speproperties,priorUpdateTime);
@@ -171,11 +153,13 @@ public class SPEMaster {
 				M_log.error("exception in converting grades: "+e);
 			}
 
+			// get the time of the newest grade so can store that and only query for newer grades
+			// in the future.
+
 			//// Insert the grades.
 			M_log.info("Grade count since {} is {}.",priorUpdateTime,SPEgradeMaps.size());
-			putSPEGrades(SPEgradeMaps);
-			// update retrieval time but ignore the time spent updating grades.
-			persisttimestamp.writeGradeTransferTime(currentGradeRetrievalTime);
+			Instant lastTestTakenTime = putSPEGrades(SPEgradeMaps,priorUpdateTime);
+			persisttimestamp.writeLastTestTakenTime(lastTestTakenTime);
 
 		} catch (GradeIOException e1) {
 			M_log.error("Exception processing SPE grades:",e1);
@@ -184,7 +168,6 @@ public class SPEMaster {
 			// Finish up, save data, send reports.
 			closeUpShop();
 		}
-
 
 	}
 
@@ -295,13 +278,18 @@ public class SPEMaster {
 	 * Get grades as JSON string.  Only grades after the gradeAfterTime
 	 * timestamp will be returned. An empty result is reasonable.
 	 * The format of the time stamp is: 2017-04-01 18:00:00.
-	 * TODO: timestamp default value?
+	 * The time in the UDW is UTC but can not pass in a trailing Z or an offset in the query to the API.
 	 */
 
-	public String getSPEGrades(SPEProperties speproperties, String gradedAfterTime) throws GradeIOException {
+	public String getSPEGrades(SPEProperties speproperties, Instant priorUpdateTime) throws GradeIOException {
 
-		spesummary.setUseGradesLastRetrieved(gradedAfterTime);
-		WAPIResultWrapper grades = gradeio.getGradesVia(speproperties,gradedAfterTime);
+		spesummary.setUseTestLastTakenTime(SPEUtils.normalizeStringTimestamp(priorUpdateTime.toString()));
+
+		Instant newQueryTime = SPEUtils.generateNewQueryTime(priorUpdateTime);
+		//String newQueryString = SPEUtils.formatTimestampInstantToImplicitUTC(newQueryTime).replace("Z", "");
+		String newQueryString = SPEUtils.formatTimestampInstantToImplicitUTC(newQueryTime);
+
+		WAPIResultWrapper grades = gradeio.getGradesVia(speproperties,newQueryString);
 
 		// check for possibility of no new grades.
 		if (grades.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -312,7 +300,6 @@ public class SPEMaster {
 	}
 
 	//{"Meta":{"Message":"COMPLETED","httpStatus":200},"Result":{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"},"@schemaLocation":"http://mais.he.umich.edu/schemas/putPlcExamScoreResponse.v1 http://csqa9ib.dsc.umich.edu/PSIGW/PeopleSoftServiceListeningConnector/putPlcExamScoreResponse.v1.xsd"}}}
-
 	//{"putPlcExamScoreResponse":{"putPlcExamScoreResponse":{"Status":"SUCCESS","Form":7,"ID":"abc"
 
 	/*********** format assignments from the data warehouse ********/
@@ -348,11 +335,17 @@ public class SPEMaster {
 	}
 
 	// convert a single JSON version of an assignment to a grademap.
+	// "{\"Score\":22,\"Published_Score\":22,\"User_Id\":-365167227025976400,\"Finished_At\":\"2017-06-26T12:09:29.107-04:00\",\"Unique_Name\":\"kylepc\"}"
 	static protected HashMap<String, String> convertAssignmentToGradeMap(JSONObject assignment) throws JSONException {
 		// Score may be read as a number instead of a string so pull out as an object and convert to a string.
 
+		// student name and time test was finished.
+		String unique_name = assignment.getString(UNIQUE_NAME);
+
+		String finished_at = assignment.getString(FINISHED_AT);
+
 		//Published_Score
-		String score = JSONObject.valueToString(assignment.get("Published_Score"));
+		String score = JSONObject.valueToString(assignment.get(SCORE));
 
 		// Some scores don't have decimal places.  They all should.  Assuming that a missing decimal place
 		// because of formatting as a number somewhere.
@@ -360,16 +353,16 @@ public class SPEMaster {
 			score += ".0";
 		}
 
-		String unique_name = assignment.getString("Unique_Name");
-
-		return createGradeMap(score, unique_name);
+		return createGradeMap(score, unique_name,finished_at);
 	}
 
-	public static HashMap<String, String> createGradeMap(String score, String unique_name) {
+	public static HashMap<String, String> createGradeMap(String score, String unique_name, String finished_at) {
 		HashMap<String,String> grademap = new HashMap<String,String>();
 
-		grademap.put("Score",score);
-		grademap.put("Unique_Name", unique_name);
+		grademap.put(SCORE,score);
+		grademap.put(UNIQUE_NAME, unique_name);
+		grademap.put(FINISHED_AT, finished_at);
+
 		return grademap;
 	}
 
@@ -416,20 +409,35 @@ public class SPEMaster {
 
 	/********* put in the grades **********/
 
-	// Send a list of grades to MPathways.
-	public void putSPEGrades(ArrayList<HashMap<String, String>> SPEgradeMaps) {
+	// Send a list of grades to MPathways.  Keep track of the last successful finished_at date so know when
+	// the query for the next set of grades should start.
+
+	public Instant putSPEGrades(ArrayList<HashMap<String, String>> SPEgradeMaps, Instant priorUpdateTime) {
 		int gradesAdded = 0;
 		int gradesAttempted = 0;
 		Boolean success;
+
+		// Minimum date that is earlier than any date we will find.
+		Instant useRecentTestLastTakenTime = priorUpdateTime;
+
 		for(HashMap<String, String> singleUser : SPEgradeMaps) {
 			gradesAttempted ++;
 			success = putSPEGrade(singleUser);
 			if (success) {
 				gradesAdded++;
+				// keep track of the most recent test taking time.
+				String currentUserFinishedAt = singleUser.get(FINISHED_AT);
+				M_log.info("added: {}",singleUser);
+				Instant userTime = SPEUtils.convertTimeStampStringToInstant(currentUserFinishedAt);
+				if (userTime.isAfter(useRecentTestLastTakenTime)) {
+					useRecentTestLastTakenTime = userTime;
+				}
 			}
 		}
 
-		M_log.info("adding grades: attempted: {} successful: {}",gradesAttempted,gradesAdded);
+		M_log.info("adding grades: attempted: {} successful: {} most recent test date: {}",gradesAttempted,gradesAdded,useRecentTestLastTakenTime);
+
+		return useRecentTestLastTakenTime;
 	}
 
 	// Send a single grade to MPathways.
@@ -443,8 +451,9 @@ public class SPEMaster {
 			success = true;
 		}
 
-		spesummary.appendUser((String) user.get("Unique_Name"), success);
-		M_log.info("grade update user: {} response: {}",user,wrappedResult.toJson());
+		spesummary.appendUser((String) user.get(UNIQUE_NAME), (String) user.get(FINISHED_AT), success);
+		M_log.debug("grade update user: {} response: {}",user,wrappedResult.toJson());
+
 		return success;
 	}
 

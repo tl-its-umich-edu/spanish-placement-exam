@@ -29,7 +29,7 @@ RUN apt-get remove -y maven git \
     && apt-get autoremove -y
 
 RUN rm -rf ~/.m2
-RUN df -h /
+#RUN df -h /
 
 ############### assemble artifacts into /opt/spe #################
 
@@ -41,7 +41,7 @@ RUN mv /tmp/target/spanish*jar /opt/spe-bin/spe.jar
 
 RUN mkdir -p /opt/spe/config
 WORKDIR /tmp/config
-RUN ls -l /tmp/config
+#RUN ls -l /tmp/config
 RUN cp /tmp/config/*properties /opt/spe/config/
 # don't insist that yml files exist.
 #RUN cp /tmp/config/*yml /opt/spe/config/; exit 0;
@@ -55,8 +55,8 @@ RUN mkdir -p /opt/spe/persist
 # ### set default command to be the SPE jar.
 WORKDIR /opt/spe
 
-RUN find /opt/spe -ls
-RUN find /opt/spe-bin -ls
+#RUN find /opt/spe -ls
+#RUN find /opt/spe-bin -ls
 
 # set entry point so can add arguments from "docker run" on command line.
 # EX: If start with:
@@ -69,5 +69,4 @@ ENTRYPOINT ["java", "-jar","/opt/spe-bin/spe.jar", \
             "--spring.profiles.include=OS"\
             ]
 
-#            "--spring.profiles.include=DBG,FILEIO"\
 #end

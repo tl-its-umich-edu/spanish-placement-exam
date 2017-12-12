@@ -1,10 +1,11 @@
 package edu.umich.its.spe;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +14,13 @@ public class PersistTimestamp {
 
 	/***************** manage the timestamp data with PersistString ***********/
 	/*
-	 * Use PersistString class to get a string with a timestamp representing the
-	 * last time the script updated the grades.
+	 * Use PersistString class to get a timestamp representing the
+	 * last time a user finished the test.
 	 *
-	 * If the value isn't available or is corrupt use a default value.  We'll be careful
-	 * but won't panic about only submitting grades once.
+	 * The underlying blob implementation is just storing a string, so we convert the
+	 * ZonedDateTime timestamps in and out of string format.
+	 *
+	 * If the timestamp value isn't available or is corrupt we'll use a default value.
 	 */
 
 	static final Logger M_log = LoggerFactory.getLogger(PersistTimestamp.class);
@@ -33,85 +36,73 @@ public class PersistTimestamp {
 	@Autowired
 	private SPESummary spesummary;
 
-	private LocalDateTime startingTime = null;
-
-	// Format an internal timestamp into the expected string.
-	protected static String formatTimestamp(LocalDateTime ts) {
-		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		String s = ts.format(formatter);
-		return s;
-	}
-
-	public String readLastGradeTransferTime() throws PersistBlobException {
+	public Instant readTestLastTakenTime() throws PersistBlobException {
 		String blob = persistString.readBlob();
+		blob = blob.trim();
 		if (blob == null) {
 			blob = "";
 		}
-		spesummary.setStoredGradesLastRetrieved(blob);
-		return blob;
+
+		M_log.info("Timestamp from disk: {}",blob);
+		spesummary.setStoredTestLastTakenTime(blob);
+
+		return SPEUtils.convertTimeStampStringToInstant(blob);
 	}
 
-	// save a specific time
-	public String writeGradeTransferTime(LocalDateTime timestamp) throws PersistBlobException {
-		return writeGradeTransferTime(formatTimestamp(timestamp));
+	// Write out instant as UTC timestamp
+	public String writeLastTestTakenTime(Instant useLastTestTakenTime) throws PersistBlobException {
+		return writeLastTestTakenTime(SPEUtils.formatTimestampInstantToImplicitUTC(useLastTestTakenTime));
 	}
 
-	// Save a specific time.
-	public String writeGradeTransferTime(String timestamp) throws PersistBlobException {
-		spesummary.setUpdatedGradesLastRetrieved(timestamp);
+	// Save a specific time from a string.
+	protected String writeLastTestTakenTime(String timestamp) throws PersistBlobException {
+		timestamp = SPEUtils.normalizeStringTimestamp(timestamp);
+		spesummary.setUpdatedTestLastTakenTime(timestamp);
 		persistString.writeBlob(timestamp);
 		return timestamp;
 	}
 
-	public String writeCurrentGradeTransferTime() throws PersistBlobException {
-		return writeGradeTransferTime(PersistTimestamp.formatTimestamp(startingTime));
-	}
+	public Instant ensureLastTestTakenTime() throws PersistBlobException, GradeIOException {
 
-	// Make sure that a reasonable last transfer time has been written.  It will be read
-	public String ensureLastGradeTransferTime() throws PersistBlobException, GradeIOException {
-
-		String useTransferTime;
+		Instant useLastTestTakenTime = null;
 
 		// if a particular time was specified by a property use that.
 		// Property can be overridden from command line.
-		useTransferTime = speproperties.getGetgrades().get("gradedaftertime");
-
-//		if (useTransferTime == null) {
-//			useTransferTime = "";
-//		}
+		String getGradedAfterTimeProperty = speproperties.getGetgrades().get("gradedaftertime");
+		M_log.debug("getgradedaftertime",getGradedAfterTimeProperty);
+		if (getGradedAfterTimeProperty != null) {
+			useLastTestTakenTime = SPEUtils.convertTimeStampStringToInstant(speproperties.getGetgrades().get("gradedaftertime"));
+		}
 
 		// if no property then read from persisted blob
-		if (useTransferTime == null || useTransferTime.length() == 0) {
-			useTransferTime = readLastGradeTransferTime();
+		if (useLastTestTakenTime == null) {
+			useLastTestTakenTime = readTestLastTakenTime();
 			// Avoid reading and re-writing the same value.
-			if (useTransferTime.length() > 0) {
-				spesummary.setUseGradesLastRetrieved(useTransferTime);
-				return useTransferTime;
+			// If found a saved value then use it.
+			if (useLastTestTakenTime != null) {
+				spesummary.setUseTestLastTakenTime(SPEUtils.normalizeStringTimestamp(useLastTestTakenTime.toString()));
+				return useLastTestTakenTime;
 			}
 		}
 
+		// No saved value so come up with a default.
 		// if nothing is persisted then get the default property value.
-		if (useTransferTime == null || useTransferTime.length() == 0) {
-			useTransferTime = speproperties.getGetgrades().get("gradedaftertimedefault");
+		if (useLastTestTakenTime == null) {
+			useLastTestTakenTime =
+					SPEUtils.convertTimeStampStringToInstant(speproperties.getGetgrades().get("gradedaftertimedefault"));
 		}
 
-//		if (useTransferTime == null) {
-//			useTransferTime = "";
-//		}
-		// if no default value in properties then use the last month.
-		if (useTransferTime == null || useTransferTime.length() == 0) {
-			useTransferTime = formatTimestamp(LocalDateTime.now().minusWeeks(WEEKS_OFFSET_DEFAULT));
+		// if no default value in properties then go back a month.
+		if (useLastTestTakenTime == null) {
+			useLastTestTakenTime = Instant.now().minus(WEEKS_OFFSET_DEFAULT,ChronoUnit.WEEKS);
 		}
 
-		if (useTransferTime == null || useTransferTime == "") {
-			M_log.error("Unable to compute last grade transfer time");
-			return useTransferTime;
-		}
+		M_log.debug("uselastTestTakenTime: UTC: {}",useLastTestTakenTime);
 
 		// Save the computed time.
-		writeGradeTransferTime(useTransferTime);
-		spesummary.setUseGradesLastRetrieved(useTransferTime);
-		return useTransferTime;
+		String timeStampAsString = writeLastTestTakenTime(useLastTestTakenTime);
+		spesummary.setUseTestLastTakenTime(timeStampAsString);
+		return useLastTestTakenTime;
 	}
 
 }

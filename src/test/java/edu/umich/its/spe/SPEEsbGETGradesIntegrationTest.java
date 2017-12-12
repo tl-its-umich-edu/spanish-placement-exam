@@ -1,22 +1,17 @@
 package edu.umich.its.spe;
 
 // INTEGRATION TEST FOR TESTING GETTING GRADES.
-
-import static org.junit.Assert.*;
-
-import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.Timeout;
-import org.junit.runner.RunWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import org.apache.http.HttpStatus;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +22,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import edu.umich.ctools.esb.utils.WAPI;
 import edu.umich.ctools.esb.utils.WAPIResultWrapper;
-
-import edu.umich.its.spe.TestingUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest

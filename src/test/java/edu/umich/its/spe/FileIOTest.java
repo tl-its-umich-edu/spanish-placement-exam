@@ -6,7 +6,6 @@ package edu.umich.its.spe;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 import static org.junit.Assert.*;
 
@@ -16,7 +15,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,12 +22,11 @@ import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.boot.test.context.SpringBootTest;
 
 import edu.umich.ctools.esb.utils.WAPI;
@@ -80,24 +77,28 @@ public class FileIOTest {
 	// @throws GradeIOException
 	@Test(expected=GradeIOException.class)
 	public void testGetGradesNullArgs() throws GradeIOException {
+		@SuppressWarnings("unused")
 		WAPIResultWrapper result = fio.getGradesVia(null,null);
 		fail("should have thrown exception");
 	}
 
 	@Test(expected=GradeIOException.class)
 	public void testGetGradesNullProperties() throws GradeIOException {
+		@SuppressWarnings("unused")
 		WAPIResultWrapper result = fio.getGradesVia(null,"HAPPY");
 		fail("should have thrown exception");
 	}
 
 	@Test(expected=GradeIOException.class)
 	public void testGetGradesNullTime() throws GradeIOException {
+		@SuppressWarnings("unused")
 		WAPIResultWrapper result = fio.getGradesVia(props,null);
 		fail("should have thrown exception");
 	}
 
 	//@Test(expected=GradeIOException.class)
 	public void testGetGradesNot() throws GradeIOException {
+		@SuppressWarnings("unused")
 		WAPIResultWrapper result = fio.getGradesVia(props,null);
 		fail("should have thrown exception");
 	}
@@ -245,12 +246,12 @@ public class FileIOTest {
 		String esbPropertyName = "putGradeIO";
 		props.setIo(setSPEProperty(props.getIo(),esbPropertyName, fullFileName));
 
-		writeUserGradeToFile(props,"1", "barney");
+		writeUserGradeToFile(props,"1", "barney","SOMETIME");
 
-		M_log.error("output file: {}",fullFileName);
+		M_log.debug("output file: {}",fullFileName);
 		File file = new File(fullFileName);
 		String gradesString = FileUtils.readFileToString(file,"UTF-8");
-		M_log.error("putGradeOutput: {}",gradesString);
+		M_log.debug("putGradeOutput: {}",gradesString);
 		//System.out.println("putGradeOutput: "+gradesString);
 	}
 
@@ -270,31 +271,35 @@ public class FileIOTest {
 		String esbPropertyName = "putGradeIO";
 		props.setIo(setSPEProperty(props.getIo(),esbPropertyName, fullFileName));
 
-		HashMap<?, ?> user;
+		//HashMap<?, ?> user;
 
-		writeUserGradeToFile(props ,"1", "barney");
-		writeUserGradeToFile(props ,"2", "rubble");
-		writeUserGradeToFile(props ,"3", "wilma");
+		// Those aren't valid timestamps, but they are treated as strings, so this is ok.
+		writeUserGradeToFile(props ,"1", "barney","NOW");
+		writeUserGradeToFile(props ,"2", "rubble","THEN");
+		writeUserGradeToFile(props ,"3", "wilma","WHENEVER");
 
-		M_log.error("output file was: {}",fullFileName);
+		M_log.debug("output file was: {}",fullFileName);
 		File file = new File(fullFileName);
 		String gradesString = FileUtils.readFileToString(file,"UTF-8");
-		M_log.error("putGradeOutput: {}",gradesString);
+		M_log.debug("putGradeOutput: {}",gradesString);
 
 		int len = gradesString.split(System.getProperty("line.separator")).length;
 
 		assertEquals("multiple lines",3,len);
 
 		assertThat("multiple grades",gradesString, containsString("barney"));
+		assertThat("multiple grades",gradesString, containsString("NOW"));
 		assertThat("multiple grades",gradesString, containsString("rubble"));
+		assertThat("multiple grades",gradesString, containsString("THEN"));
 		assertThat("multiple grades",gradesString, containsString("wilma"));
+		assertThat("multiple grades",gradesString, containsString("WHENEVER"));
 	}
 
-	public void writeUserGradeToFile(SPEProperties props,String grade, String name) {
+	public void writeUserGradeToFile(SPEProperties props,String grade, String name, String timestamp) {
 		HashMap<?, ?> user;
-		user = SPEMaster.createGradeMap(grade, name);
+		user = SPEMaster.createGradeMap(grade, name, timestamp );
 		WAPIResultWrapper result = FileIO.putGradeFileStatic(props, user);
-		M_log.error("putGradeOne: user: {} json: {}",name,result.toJson());
+		M_log.debug("putGradeOne: user: {} json: {}",name,result.toJson());
 	}
 
 	@Ignore
