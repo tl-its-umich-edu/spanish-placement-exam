@@ -4,9 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-
 
 import java.io.IOException;
 
@@ -18,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SPEEsbPropertiesTest {
-	
+
 	// Apply a global timeout to all tests.  Comment out when debugging a test.
     //@Rule
     //public Timeout globalTimeout = Timeout.seconds(10);
@@ -30,7 +28,7 @@ public class SPEEsbPropertiesTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	private static Logger M_log = LoggerFactory.getLogger(SPEEsbPropertiesTest.class);
 
 	public Properties readTestProperties() throws IOException{
@@ -46,7 +44,7 @@ public class SPEEsbPropertiesTest {
 		}
 		return props;
 	}
-	
+
 	@Test
 	public void checkPropertiesFile() throws IOException {
 		Properties props = readTestProperties();

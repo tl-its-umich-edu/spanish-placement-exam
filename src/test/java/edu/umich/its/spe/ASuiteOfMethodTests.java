@@ -6,9 +6,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-	FileIOTest.class, PersistBlobImplTest.class, PersistTimestampTest.class,
-	SPEEsbPropertiesTest.class,
-	SPEMasterProcessGradeTest.class, SPESummaryTest.class,SPEEsbImplURLFormatTest.class  })
+	FileIOTest.class, PersistBlobImplTest.class,
+	PersistTimestampTest.class, SPEEsbPropertiesTest.class,
+	SPEMasterProcessGradeTest.class, SPESummaryTest.class,
+	SPEEsbImplURLFormatTest.class, SPEUtilsTest.class })
+
 public class ASuiteOfMethodTests {
 
 }
