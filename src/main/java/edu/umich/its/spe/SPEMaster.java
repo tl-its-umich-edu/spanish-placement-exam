@@ -345,7 +345,7 @@ public class SPEMaster {
 		String finished_at = assignment.getString(FINISHED_AT);
 
 		//Published_Score
-		String score = JSONObject.valueToString(assignment.get("Published_Score"));
+		String score = JSONObject.valueToString(assignment.get(SCORE));
 
 		// Some scores don't have decimal places.  They all should.  Assuming that a missing decimal place
 		// because of formatting as a number somewhere.
