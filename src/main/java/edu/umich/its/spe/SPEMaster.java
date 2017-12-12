@@ -453,6 +453,7 @@ public class SPEMaster {
 
 		spesummary.appendUser((String) user.get(UNIQUE_NAME), (String) user.get(FINISHED_AT), success);
 		M_log.debug("grade update user: {} response: {}",user,wrappedResult.toJson());
+
 		return success;
 	}
 
