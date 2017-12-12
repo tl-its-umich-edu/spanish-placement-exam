@@ -163,24 +163,28 @@ See the properties file section above for more details.
 
 ## Adjust the last test date
 
-The format of the last test date timestmap is ISO8601 compatible.  It need not 
+The format of the last test date timestamp is ISO8601 compatible.  It need not 
 contain
 a T.  The time zone of the time stamp can be specified with an offset (or a 
 trailing Z for UTC).  If no time zone is provided the time stamp is assumed to 
 be in UTC.
-Note the test finished time stamp in the database is stored in UTC so if the 
-time
-needs to be overridden the time stamp 
+Note that the test finished time stamp from Canvas in the database is stored 
+in UTC so if the time needs to be overridden the time stamp 
 
-In rare circumstances it may be necessary to reset the last test time stamp 
-used by SPE.  The simplest approach is to create a new environment 
-variable for a deployment configuration with the required time stamp. 
-The variable name is: **getgrades_gradedaftertime** and value 
-should be a valid time stamp value in the format specified above.  The 
-application should then re-deploy and use this value for the next run.  *After 
-the application runs it is important to delete that environment variable and 
-have
-the application re-deploy again.*  If the environment variable exists its value
-will always be the one used by SPE and tests will be reprocessed.
+In rare circumstances it may be necessary to override the last test time stamp 
+used by SPE.  The simplest approach in OpenShift is to create a new environment 
+variable (**getgrades_gradedaftertime**) in the deployment configuration with 
+the value of the required time stamp. 
+Its value 
+should be a valid time stamp value in the format specified above. After saving
+the environment variable the application will automatically re-deploy and use 
+the that value for the next run. NOTE: 
+As long as that environment variable exists its value will be used by SPE so 
+the same set of tests will be gathered and processed until the value is changed.
+To restart normal 
+operation just delete that environment variable from the OpenShift environment 
+and let the application re-deploy.
+
+
 
  
