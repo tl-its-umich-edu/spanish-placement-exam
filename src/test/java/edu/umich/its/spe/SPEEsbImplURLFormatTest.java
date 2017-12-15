@@ -86,4 +86,27 @@ public class SPEEsbImplURLFormatTest {
 		assertEquals("geturl format","FIRST/data/CourseId/PracticalMagic/AssignmentTitle/GO%20AWAY",url);
 	}
 
+	@Test
+	public void setupPutGradeCallUserInfoTest() throws GradeIOException {
+		HashMap<String, String> user = new HashMap<String, String>();
+
+		SPEProperties speprop = new SPEProperties();
+		HashMap<String, String> io = new HashMap<String,String>();
+		speprop.setIo(io);
+
+		// store information under standard names and retrieve under expected name for the put grade.
+		// This fails if the right names are used where expected.
+
+		user.put(SPEMaster.SCORE,"INFINITE");
+		user.put(SPEMaster.UNIQUE_NAME,"HowdyDuty");
+
+		HashMap<String, String> putInfo = speesb.setupPutGradeCall(speprop,user);
+
+		assertEquals("uniqname","HowdyDuty",putInfo.get("UNIQNAME"));
+		assertEquals("score","INFINITE",putInfo.get("SCORE"));
+	}
+
+
+
+
 }
