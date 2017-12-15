@@ -48,8 +48,10 @@ public class SPEMasterProcessGradeTest {
 
 		for(HashMap<String, String> e : gradedFromDW) {
 			assertThat("proper type",e,instanceOf(HashMap.class));
-			assertThat("Score exists and is string",e.get("Score"),instanceOf(String.class));
-			assertThat("Unique_Name exists and is string",e.get("Unique_Name"),instanceOf(String.class));
+			assertThat("Score exists and is string",e.get(SPEMaster.SCORE),instanceOf(String.class));
+			assertThat("Unique_Name exists and is string",e.get(SPEMaster.UNIQUE_NAME),instanceOf(String.class));
+//			assertThat("Score exists and is string",e.get("Score"),instanceOf(String.class));
+//			assertThat("Unique_Name exists and is string",e.get("Unique_Name"),instanceOf(String.class));
 		}
 	}
 
@@ -57,7 +59,7 @@ public class SPEMasterProcessGradeTest {
 	public void testConvertAssignmentAToGradeMap() throws JSONException {
 		JSONObject jo = new JSONObject(assignmentJSON_A);
 		HashMap<String, String> gradeMap = SPEMaster.convertAssignmentToGradeMap(jo);
-		assertEquals("score:","1721.5",gradeMap.get("Score"));
+		assertEquals("score:","1721.5",gradeMap.get(SPEMaster.SCORE));
 		assertEquals("uniqname:","studentc",gradeMap.get("Unique_Name"));
 	}
 
@@ -65,7 +67,7 @@ public class SPEMasterProcessGradeTest {
 	public void testConvertAssignmentBToGradeMap() throws JSONException {
 		JSONObject jo = new JSONObject(assignmentJSON_B);
 		HashMap<String, String> gradeMap = SPEMaster.convertAssignmentToGradeMap(jo);
-		String score = gradeMap.get("Score");
+		String score = gradeMap.get(SPEMaster.SCORE);
 		assertTrue("score requires 1 decimal place: ["+score+"]",SPEMaster.scoreRegexPattern.matcher(score).matches());
 		assertEquals("score:","1320.0",score);
 		assertEquals("uniqname:","studentd",gradeMap.get("Unique_Name"));
@@ -75,7 +77,7 @@ public class SPEMasterProcessGradeTest {
 	public void testConvertAssignmentCToGradeMap() throws JSONException {
 		JSONObject jo = new JSONObject(assignmentJSON_C);
 		HashMap<String, String> gradeMap = SPEMaster.convertAssignmentToGradeMap(jo);
-		String score = gradeMap.get("Score");
+		String score = gradeMap.get(SPEMaster.SCORE);
 		assertTrue("allow score with >4 numbers before decimal: ["+score+"]",SPEMaster.scoreRegexPattern.matcher(score).matches());
 		assertEquals("score:","945.5",score);
 		assertEquals("uniqname:","studentd",gradeMap.get("Unique_Name"));
@@ -93,7 +95,7 @@ public class SPEMasterProcessGradeTest {
 
 			JSONObject grade = jAD.getJSONObject(i);
 			assertThat("proper type",grade,instanceOf(JSONObject.class));
-			assertThat("Score exists and is string",JSONObject.valueToString(grade.get("Score")),instanceOf(String.class));
+			assertThat("Score exists and is string",JSONObject.valueToString(grade.get(SPEMaster.SCORE)),instanceOf(String.class));
 			assertThat("Unique_Name exists and is string",grade.getString("Unique_Name"),instanceOf(String.class));
 		}
 	}

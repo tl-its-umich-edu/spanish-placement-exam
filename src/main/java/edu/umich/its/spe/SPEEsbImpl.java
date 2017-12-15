@@ -142,8 +142,8 @@ public class SPEEsbImpl implements GradeIO {
 			values.putAll(speproperties.getPutgrades());
 		}
 		else {
-			values.put("SCORE",(String) user.get("Score"));
-			values.put("UNIQNAME",(String) user.get("Unique_Name"));
+			values.put("SCORE",(String) user.get(SPEMaster.SCORE));
+			values.put("UNIQNAME",(String) user.get(SPEMaster.UNIQUE_NAME));
 		}
 
 		return values;
