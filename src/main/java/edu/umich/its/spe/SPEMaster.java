@@ -78,6 +78,19 @@ public class SPEMaster {
 		M_log.debug("SPEMaster: this: "+this.toString());
 	}
 
+	// This constructor is used only during testing when Spring does not auto-inject beans.
+	public SPEMaster(GradeIO gradeio, PersistTimestamp persisttimestamp,
+			SPEProperties speproperties, SimpleJavaEmail sjm, SPESummary spesummary) {
+		super();
+
+		this.gradeio = gradeio;
+		this.persisttimestamp = persisttimestamp;
+		this.speproperties = speproperties;
+		this.sjm = sjm;
+		this.spesummary = spesummary;
+
+	}
+
 	// Normalize the global email setting
 	@PostConstruct
 	void globalSettingsFromProperties() {
@@ -231,6 +244,9 @@ public class SPEMaster {
 
 	public void sendSummaryEmail() {
 
+		M_log.debug("getAdded(): "+spesummary.getAdded());
+		M_log.debug("getErrors(): "+spesummary.getErrors());
+		M_log.debug("emailMap: "+emailMap);
 		if (((spesummary.getAdded() + spesummary.getErrors()) == 0)
 				&& !"TRUE".equals(emailMap.get("alwaysMailReport"))) {
 			M_log.warn("No users were processed.");
@@ -245,10 +261,14 @@ public class SPEMaster {
 
 		String summaryString = spesummary.toString();
 
+		String subjectString = String.format("(%d/%d) %s %s",spesummary.getAdded(),spesummary.getErrors(),
+				emailMap.get("subject"),SPEUtils.getISO8601StringForDate(new Date()));
+
 		sjm.sendSimpleMessage(
 				emailMap.get("from"),
 				emailMap.get("to"),
-				emailMap.get("subject")+" "+SPEUtils.getISO8601StringForDate(new Date()),
+				subjectString,
+				//emailMap.get("subject")+" "+SPEUtils.getISO8601StringForDate(new Date()),
 				summaryString);
 	}
 
@@ -286,7 +306,6 @@ public class SPEMaster {
 		spesummary.setUseTestLastTakenTime(SPEUtils.normalizeStringTimestamp(priorUpdateTime.toString()));
 
 		Instant newQueryTime = SPEUtils.generateNewQueryTime(priorUpdateTime);
-		//String newQueryString = SPEUtils.formatTimestampInstantToImplicitUTC(newQueryTime).replace("Z", "");
 		String newQueryString = SPEUtils.formatTimestampInstantToImplicitUTC(newQueryTime);
 
 		WAPIResultWrapper grades = gradeio.getGradesVia(speproperties,newQueryString);
