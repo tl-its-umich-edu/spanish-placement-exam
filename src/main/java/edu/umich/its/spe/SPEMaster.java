@@ -268,7 +268,6 @@ public class SPEMaster {
 				emailMap.get("from"),
 				emailMap.get("to"),
 				subjectString,
-				//emailMap.get("subject")+" "+SPEUtils.getISO8601StringForDate(new Date()),
 				summaryString);
 	}
 
