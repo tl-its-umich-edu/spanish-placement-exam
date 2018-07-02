@@ -114,7 +114,8 @@ public class SPESummaryTest {
 
 		String tos = ss.toString();
 
-		System.out.println("tos: "+tos);
+		// Uncomment if want to see the report.
+		//System.out.println(tos);
 		assertThat("find user 1",tos,containsString("user: user 1 success: true finished at: THEN"));
 		assertThat("find user 2",tos,containsString("user: user 2 success: false finished at: THEN"));
 		assertThat("find user 3",tos,containsString("user: user 3 success: true finished at: NOW"));

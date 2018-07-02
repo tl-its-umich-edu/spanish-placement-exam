@@ -61,12 +61,17 @@ public class SPESummary {
 	private int added = 0;
 	private int errors = 0;
 
+	private String mailHeader = "Summary of Spanish Placement Exam processing.  " + LINE_RETURN
+			+ "This report includes the report runtimes, the cutoff times used for querying for new users,"
+			+ " and counts of users added and errors."+LINE_RETURN
+			+ "The subject line of the corresponding email summarizes the users added and errors as (n/n)."+LINE_RETURN;
+
 	// Empty the object so it can be used anew for the next run.  Used auto-wiring to
 	// get the same object everywhere it is needed.  May not be the best choice if
 	// if using the internal wait and restart approach to cron jobs.
 
 	public void reset() {
-		// Instant is based on linux epoch time so it is unambigiously
+		// Instant is based on Linux epoch time so it is unambiguously
 		// interpreted as UTC.
 		startTime = Instant.now();
 		endTime = null;
@@ -111,6 +116,7 @@ public class SPESummary {
 
 		endTime = Instant.now();
 		StringBuffer result = new StringBuffer();
+		result.append(mailHeader);
 
 		Duration dur = Duration.between(startTime, endTime);
 

@@ -63,7 +63,7 @@ public class SPEMasterSendEmail {
 		given(this.spesummary.getAdded()).willReturn(0);
 		given(this.spesummary.getErrors()).willReturn(0);
 
-        callSendSummaryEmail();
+		callSendSummaryEmail();
 
 		verify(sjm).sendSimpleMessage(eq(null),eq(null),contains("(0/0) Test Subject"),anyString());
 	}
@@ -76,7 +76,7 @@ public class SPEMasterSendEmail {
 		given(this.spesummary.getAdded()).willReturn(2);
 		given(this.spesummary.getErrors()).willReturn(0);
 
-        callSendSummaryEmail();
+		callSendSummaryEmail();
 
 		verify(sjm).sendSimpleMessage(eq(null),eq(null),contains("(2/0) Test Subject"),anyString());
 	}
@@ -90,7 +90,7 @@ public class SPEMasterSendEmail {
 		given(this.spesummary.getAdded()).willReturn(0);
 		given(this.spesummary.getErrors()).willReturn(2);
 
-        callSendSummaryEmail();
+		callSendSummaryEmail();
 
 		verify(sjm).sendSimpleMessage(eq(null),eq(null),contains("(0/2) Test Subject"),anyString());
 	}
@@ -107,14 +107,14 @@ public class SPEMasterSendEmail {
 	public void setupMockitoExpectations() throws PersistBlobException, GradeIOException {
 		given(this.persisttimestamp.ensureLastTestTakenTime()).willReturn(Instant.now());
 
-        @SuppressWarnings("serial")
+		@SuppressWarnings("serial")
 		HashMap<String,String> myMap = new HashMap<String,String>(){
-        {
-        	put("alwaysMailReport", "TRUE");
-        	put("subject","Test Subject");
-        }};
+			{
+				put("alwaysMailReport", "TRUE");
+				put("subject","Test Subject");
+			}};
 
-        when(this.speproperties.getEmail()).thenReturn(myMap);
+			when(this.speproperties.getEmail()).thenReturn(myMap);
 	}
 
 }
