@@ -26,6 +26,7 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 @Component
 @Qualifier("ESBIO")
 
+
 public class SPEEsbImpl implements GradeIO {
 
 	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
@@ -35,17 +36,64 @@ public class SPEEsbImpl implements GradeIO {
 	@Autowired
 	SPESummary spesummary;
 
+	// Hold configuration for connecting to the ESB.
+	// If there are multiple WAPI connections required then will need multiple variables.
+	private WAPI wapi = null;
+
+	// Can set to always return a new connection.  Primarily for testing.
+	private Boolean reuseConnection = true;
+
 	// No arg constructor for use in SpringApp.
 	public SPEEsbImpl() {
 		super();
 	}
 
-	// Constructor that allows injecting summary object.  That can
-	// be useful in testing when don't want to require using Spring injection.
+
+	// Constructors that allows injecting objects.  This can be useful
+	// in testing when don't want to require using Spring injection.
+	// Only the necessary constructors has been created.  There is probably a
+	// better way to do this.  The fundamental issue was injecting mocks.
 
 	public SPEEsbImpl(SPESummary spesummary) {
 		super();
 		this.spesummary = spesummary;
+	}
+
+	public SPEEsbImpl(WAPI wapi, SPESummary spesummary) {
+		super();
+		this.wapi = wapi;
+		this.spesummary = spesummary;
+	}
+
+	// allows testing default value of reuseConnection.
+	public SPEEsbImpl(WAPI wapi) {
+		super();
+		this.wapi = wapi;
+	}
+
+	public SPEEsbImpl(Boolean reuseConnection) {
+		super();
+		this.reuseConnection = reuseConnection;
+	}
+
+	// Make sure there is a useful connector to the ESB.  Pass in the value of caller WAPI by reference
+	// so a) can check if it is already set and b) this could be used for multiple different connections if necessary.
+	// This can't currently be called at calling class creation since don't have the properties file available at
+	// that time. Each method using WAPI needs to call this.
+
+	public WAPI assureWAPI(WAPI wapi, HashMap<String,String> ioproperties) {
+
+		// This line allows testing to see if this change makes a difference in the number of calls to the ESB.
+		if (this.reuseConnection == false) {
+			wapi = null;
+		}
+
+		// Don't check here for problems, allow any problem to be dealt with in the call chain.
+		if (wapi == null) {
+			wapi = new WAPI(ioproperties);
+		}
+
+		return wapi;
 	}
 
 	/******************** Get grades from ESB (Unizin Data Warehouse) ******************/
@@ -82,15 +130,15 @@ public class SPEEsbImpl implements GradeIO {
 		String url = formatGetURLTemplate(values);
 		M_log.debug("getGrades: request url: [" + url.toString() + "]");
 
-		WAPI wapi = new WAPI(values);
+		this.wapi = assureWAPI(this.wapi,speproperties.getIo());
 
 		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
 
 		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
 			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "
-						+wrappedResult.getMessage()
-						+" URL: "+ url.toString()
-						+" Headers: "+headers;
+					+wrappedResult.getMessage()
+					+" URL: "+ url.toString()
+					+" Headers: "+headers;
 			M_log.error(msg,wrappedResult.toString());
 			throw(new GradeIOException(msg));
 		}
@@ -104,8 +152,9 @@ public class SPEEsbImpl implements GradeIO {
 
 	/* Put together the URL to get grades */
 
-	// Ensure the assignment title is ok and then really put the url together
+
 	public String formatGetURLTemplate(HashMap<String, String> values) throws GradeIOException {
+		// Ensure the assignment title is ok and then really put the url together
 		try {
 			values.put("ASSIGNMENTTITLE",
 					URLEncoder.encode(values.get("ASSIGNMENTTITLE"),"UTF-8").replaceAll("\\+", "%20"));
@@ -165,7 +214,7 @@ public class SPEEsbImpl implements GradeIO {
 		String url = formatPutURLTemplate(values);
 		M_log.debug("putGrades: request url: [" + url.toString() + "]");
 
-		WAPI wapi = new WAPI(values);
+		this.wapi = assureWAPI(this.wapi,speproperties.getIo());
 		WAPIResultWrapper wrappedResult = null;
 
 		wrappedResult = wapi.doPutRequest(url.toString(), headers);
@@ -177,13 +226,13 @@ public class SPEEsbImpl implements GradeIO {
 
 	// Template is set as an external io property.
 	public String formatPutURLTemplate(HashMap<String, String> values) {;
-		return String.format(
-				values.get("esbPutScoreTemplate"),
-				new Object[]{
-						values.get("apiPrefix"),
-						values.get("UNIQNAME"),
-						values.get("SCORE")
-				});
+	return String.format(
+			values.get("esbPutScoreTemplate"),
+			new Object[]{
+					values.get("apiPrefix"),
+					values.get("UNIQNAME"),
+					values.get("SCORE")
+			});
 	}
 
 	/************************** Check that can access ESB successfully *********************/
@@ -193,7 +242,8 @@ public class SPEEsbImpl implements GradeIO {
 	@Override
 	public boolean verifyConnection(SPEProperties speproperties) {
 
-		WAPI wapi = new WAPI(speproperties.getIo());
+		this.wapi = assureWAPI(this.wapi,speproperties.getIo());
+
 		WAPIResultWrapper tokenRenewal = wapi.renewToken();
 		Boolean success = false;
 
