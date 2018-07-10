@@ -29,6 +29,8 @@ import edu.umich.ctools.esb.utils.WAPIResultWrapper;
 
 public class SPEEsbImpl implements GradeIO {
 
+	private static final String REUSE_CONNECTION = "reuseConnection";
+
 	protected static final String SKIP_GRADE_UPDATE = "SKIP GRADE UPDATE";
 
 	static final Logger M_log = LoggerFactory.getLogger(SPEEsbImpl.class);
@@ -40,18 +42,17 @@ public class SPEEsbImpl implements GradeIO {
 	// If there are multiple WAPI connections required then will need multiple variables.
 	private WAPI wapi = null;
 
-	// Can set to always return a new connection.  Primarily for testing.
-	private Boolean reuseConnection = true;
+	// Mostly for testing.  Default value set in assureWAPI below.
+	private Boolean reuseConnection = null;
 
 	// No arg constructor for use in SpringApp.
 	public SPEEsbImpl() {
 		super();
 	}
 
-
-	// Constructors that allows injecting objects.  This can be useful
+	// Constructors that allow injecting objects.  This can be useful
 	// in testing when don't want to require using Spring injection.
-	// Only the necessary constructors has been created.  There is probably a
+	// Only the specific constructors has been created.  There is probably a
 	// better way to do this.  The fundamental issue was injecting mocks.
 
 	public SPEEsbImpl(SPESummary spesummary) {
@@ -83,7 +84,17 @@ public class SPEEsbImpl implements GradeIO {
 
 	public WAPI assureWAPI(WAPI wapi, HashMap<String,String> ioproperties) {
 
-		// This line allows testing to see if this change makes a difference in the number of calls to the ESB.
+		// Set reuseConnection value from properties.  It is done here to keep changes to a minimum and
+		// because the script is plenty fast.
+
+		// If not set in the class then default value and override from properties (if specified).
+		if (this.reuseConnection == null) {
+			this.reuseConnection = Boolean.valueOf("TRUE");
+			if (ioproperties.get(REUSE_CONNECTION) != null) {
+				this.reuseConnection = Boolean.valueOf(ioproperties.get(REUSE_CONNECTION));
+			}
+		}
+
 		if (this.reuseConnection == false) {
 			wapi = null;
 		}
@@ -132,7 +143,7 @@ public class SPEEsbImpl implements GradeIO {
 
 		this.wapi = assureWAPI(this.wapi,speproperties.getIo());
 
-		WAPIResultWrapper wrappedResult = wapi.doRequest(url.toString(),headers);
+		WAPIResultWrapper wrappedResult = wapi.getRequest(url.toString(),headers);
 
 		if (wrappedResult.getStatus() != HttpStatus.SC_OK && wrappedResult.getStatus() != HttpStatus.SC_NOT_FOUND) {
 			String msg = "error in esb call to get grades: status: "+wrappedResult.getStatus()+" message: "
@@ -217,7 +228,7 @@ public class SPEEsbImpl implements GradeIO {
 		this.wapi = assureWAPI(this.wapi,speproperties.getIo());
 		WAPIResultWrapper wrappedResult = null;
 
-		wrappedResult = wapi.doPutRequest(url.toString(), headers);
+		wrappedResult = wapi.putRequest(url.toString(), headers);
 
 		M_log.debug("putGrade result: {}",wrappedResult.toJson());
 

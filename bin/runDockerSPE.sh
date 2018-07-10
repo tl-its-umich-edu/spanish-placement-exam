@@ -7,7 +7,7 @@ set -u
 
 echo "run SPE in docker"
 
-TAG=spe_a
+TAG=spe_b
 
 ENVIRONMENT=" -e TZ=America/New_York "
 
