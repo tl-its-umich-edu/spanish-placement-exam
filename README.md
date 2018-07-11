@@ -77,33 +77,36 @@ wait functionality should be replaced by explicit cron functionality.
 # Configuration / Properties
 
 Configuration is done primarily with configuration files.  Properties
-can be overriden by environment variables as necessary.  Note that
-property changes will require re-deploying the application to pick up
-the new values.
+can be overridden by environment variables as necessary. Properties files
+without secret information are 
+included in the build.   Note that means changes to those files
+will require re-deploying the application to pick up
+the new values. 
 
 ## Property files
 SPE takes advantage of the Spring *profile* application properties files 
 capability. Profiles are property files are named 
 using the convention of *application-{profile_name}.properties*.
-The file with the name *application.properties* will always be read.  Additional 
+The file with the name *application.properties* will always be read.  
+Additional 
 files with names following that convention 
-are an optional profile properties files.  
+are optional profile properties files.
 The profiles to be read  can be specified by adding the profile name
 suffix to the run time 
 argument *--spring.profiles.include={profile_name}*. Multiple profile names can
-be included. The files will be read in the 
-order specified.  A property value may be set in multiple files.  The last value
+be included, separated by commas. The files will be read in the 
+order given.  A property value may be set in multiple files.  The last value
 read will be used. For example the argument *--spring.profiles.include=DBG,OS-DEV* would
 include the files *application.properties*, *application-DBG.properties* 
-and *application-OS-DEV.properties*.  Any property value set in the OS-DEV
+and *application-OS-DEV.properties* and any property value set in the OS-DEV
 profile file would be the value used by SPE.
 
 Properties are split between secure and public properties. Secure files should
 only contain information that isn't appropriate to put in a public GitHub
 repository. Public properties are kept with the rest of the files in 
-source control.   In OpenShift 
-the secure properties are kept in project specific Secrets.  The secrets volume 
-will need to be mounted as a seperate directory:  E.g. */opt/secrets*. 
+source control. In OpenShift 
+the secure properties are kept in project specific Secrets. The secrets volume 
+will need to be mounted as a separate directory:  E.g. */opt/secrets*. 
 
 In production there will typically be three properties files used.
 
@@ -118,7 +121,7 @@ In production there will typically be three properties files used.
  information required for secure connections.  E.g. the urls, key, and secret (etc.)
  values to connect to the ESB. 
  
-## Overriding properties
+## Overriding property file values
 Properties can also be specified as environment variables or as command line
 arguments.  Most properties will be set in files but it convenient
 to override some values at runtime. In particular this is useful to specify the
@@ -152,9 +155,20 @@ to build and run a local instance of SPE.  See the script to see how this is
 configured by default.  This is only used for local development so the
 documentation is sparse.
 
-
+# Testing
+The application profile properties files can be very helpful for debugging.  
+There are several examples in the config directory.  One interesting one is the
+application-FILEIO.properties file.  It provides examples of how SPE can be 
+configured to read and/or write to files rather than the ESB.  Since there isn't
+an available test API to write grades and we can't write them to production
+this ability is important for testing.
 
 # OpenShift Considerations
+
+## Properties
+By convention the OpenShift environment often uses environment variables
+to set properties.  If you are tracking down a setting be sure to check 
+the settings in the deployment under consideration.
 
 ## Logs
 When run outside of OpenShift logs are available as expected in the runtime 
@@ -166,12 +180,13 @@ log from the UI. After the pod is terminated old logs should be available
 using the "View on the Archive" tab.  Logs may also be available via 
 the command line via *oc* or in Spunk, or at
 https://kibana.openshift.dsc.umich.edu/
+Logs are only available for 30 days.
+The logging setup is subject to change so YMMV. 
 
-# OpenShift Considerations
 
 ## Creating a new SPE instance
 
-A new instance of code should be based on the deployment and build
+Setup of a new instance should be based on the deployment and build
 configuration of the existing instances.  It is unlikely that a new
 instance will be required.  Updating an existing instance is covered
 below.

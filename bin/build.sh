@@ -3,7 +3,7 @@
 
 PROFILES=
 # trace for debugging
-set -x
+#set -x
 set -e
 
 # fail if there is a variable without a value.
@@ -20,7 +20,7 @@ DOCKER=/usr/local/bin/docker
 # set timezone explicitly
 TIMEZONE=" -e TZ=America/New_York "
 
-DOCKER_TAG=spe_a
+DOCKER_TAG=spe_b
 
 echo ">>>>>>> FIX BUG <<<<<<<< Should not skip unit tests."
 TEMP_ARGS=" -D maven.test.skip=true "
@@ -43,7 +43,8 @@ TEMP_ARGS=" -D maven.test.skip=true "
 #cp ./target/*jar .
 
 # Dockerfile has the mvn commands
-time ${DOCKER} build --no-cache -t ${DOCKER_TAG} .
+#time ${DOCKER} build --no-cache -t ${DOCKER_TAG} .
+time ${DOCKER} build -t ${DOCKER_TAG} .
 
 #echo "current directory: " $(pwd)
 # remove the temporary directory for config files
