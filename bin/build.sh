@@ -3,7 +3,7 @@
 
 PROFILES=
 # trace for debugging
-set -x
+#set -x
 set -e
 
 # fail if there is a variable without a value.

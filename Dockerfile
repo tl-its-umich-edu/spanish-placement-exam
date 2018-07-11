@@ -14,13 +14,14 @@ RUN apt-get update \
 WORKDIR /tmp
 
 ## build the esbUtils (not directly available as a jar so build and install locally).
-RUN git clone --branch v2.0 https://github.com/tl-its-umich-edu/esbUtils \
+RUN git clone --branch v2.1 https://github.com/dlhaines/esbUtils \
  && cd esbUtils \
  && pwd \
  && mvn clean install
 
 ## build the SPE application
 COPY . /tmp
+
 # Don't run tests test on OpenShift build
 RUN mvn clean package -D maven.test.skip=true
 
@@ -29,7 +30,6 @@ RUN apt-get remove -y maven git \
     && apt-get autoremove -y
 
 RUN rm -rf ~/.m2
-#RUN df -h /
 
 ############### assemble artifacts into /opt/spe #################
 
@@ -41,10 +41,10 @@ RUN mv /tmp/target/spanish*jar /opt/spe-bin/spe.jar
 
 RUN mkdir -p /opt/spe/config
 WORKDIR /tmp/config
-#RUN ls -l /tmp/config
+
 RUN cp /tmp/config/*properties /opt/spe/config/
 # don't insist that yml files exist.
-#RUN cp /tmp/config/*yml /opt/spe/config/; exit 0;
+
 RUN cp /tmp/config/*json /opt/spe/config/
 
 # Create directory to store persisted information.
@@ -54,9 +54,6 @@ RUN mkdir -p /opt/spe/persist
 
 # ### set default command to be the SPE jar.
 WORKDIR /opt/spe
-
-#RUN find /opt/spe -ls
-#RUN find /opt/spe-bin -ls
 
 # set entry point so can add arguments from "docker run" on command line.
 # EX: If start with:
