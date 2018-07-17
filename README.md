@@ -1,50 +1,54 @@
-# Spanish Placement Exam Script
+# Spanish Placement Exam Script (SPE)
 
 This script is to allow student grades on Spanish placement exams in
 Canvas to be automatically added to MPathways.  It runs
 periodically as a batch script.  It needs little attention unless
 there are external changes to authentication information or data
 formats.  The script is silent except when there are grades processed.
-If there is new grade information the script will email a 
+If there is new grade information found then the script will email a 
 summary report to an Mcommunity group.  The summary report is also
 written to the log every time the script runs.
 
 SPE will keep track of the last time it requested grade data so that
 grades won't constantly be requested or processed.  If, for some reason,
-the stored date isn't
-the one needed it can be adjusted manually.  See SPECIAL PROCESSING below
-for details.
+the stored date isn't the one needed it can be adjusted manually. 
+See SPECIAL PROCESSING below for details.
 
 # Design
 
-SPE is a Spring Boot java application. It runs in a continuous loop  but has 
-built in waits so that it will process input several times a day. This 
-built in wait should be replaced by explicit cron functionality but the 
-options for that are current  limited in OpenShift.
+SPE is implemented as a Spring Boot java application. 
+
+The processing loop is simple:
+- See if there are any new SPE grades to update.  This is based on the stored
+timestamp of the most recent exam found in the last run.
+- If there are then get the grades, format them for updating MPathways, and
+do the update.
+- Send out an email summary of the updates done.
+- Sit and wait for the next time to run.
+
+All processing is done in a single instance of the script.  Multiple instances
+will fail since they will contend over access to the stored date.
 
 The job is nearly state-less.
 
  * Scores are retrieved and updated
-through an ESB API.  
+through an ESB API that talks to the Unizin Data Warehouse for getting 
+information and MPathways for local updates.  
  * Non-secure configuration is bundled with the
 application in properties files. 
- * Secure information is provided through OpenShift
-Secrets. 
+ * Secure information is provided through separate properties files.
  * Summary information is logged and, when there grade
 activity, is sent to the MCommunity group.
-
-A very small amount of disk storage is used to record the most recent
-time that a user finished a test.  This is used as input to the query
-to get the next batch of test results so that tests are not processed
-multiple times.
+ * A very small amount of disk storage is used to record the most recent
+time that any user finished a test.
 
 See SPECIAL FEATURES for details.
  
 # Running SPE
 
-SPE is configured to run on OpenShift.  Projects and running instances
-are provided in the UM OpenShift instance.  Only one SPE pod should
-be run per project.
+For development SPE can run within an IDE, from the command line, in a 
+local docker container, or in a development OpenShift project.  There are 
+bash scripts provided in the project that illustrate how to run the code.
 
 ## Runtime Environment
 ### Local state
@@ -56,49 +60,47 @@ the configuration files for the exact names.
 There is no non-production Unizin Data Warehouse, so for both
 production and instances ESB APIs the scores are 
 read from the Production Unizin Data Warehouse. The Spanish Placement
-test itself was created in our production instance of Canvas.   To
-allow for development testing there are two SPE test courses, one
+test itself is in a specific Canvas site in our production instance of Canvas.   
+To allow for testing there are two SPE test courses, one
 unpublished one for 
 development testing and one public one for student use.  The score
-updates done by the ESB API QA instance are done to our test MPathways
-database and production ESB API updates the production MPathways database.
+updates done by the ESB API QA instance fail since the test MPathways instance
+is not properly configured.  This actually works fine since the update path
+is well tested and we don't end up dealing with massive numbers of duplicates
+during testing.
+
 ### QA and Production
-The SPE script runs as an OpenShift application.  Non-prod and prod  
-Projects and applications have been provisioned in the UM OpenShift instance.  Additional 
-instances should not be required.
-### Frequency of updates
-SPE functions as a batch script.  OpenShift does not, as yet, adequately support
-cron like functionality. To make sure that the script runs periodically
-the script implements the capacity to wait for configurable periods of time in-between 
-processing attempts The wait time is a configurable
-property. Eventually this home grown 
-wait functionality should be replaced by explicit cron functionality.
+Outside of local development the SPE script runs as an OpenShift application.  
+Non-prod and prod Projects and applications have been provisioned in the 
+UM OpenShift instance.  
 
 # Configuration / Properties
 
-Configuration is done primarily with configuration files.  Properties
-can be overridden by environment variables as necessary. Properties files
-without secret information are 
-included in the build.   Note that means changes to those files
+Configuration is done primarily with properties files.  
+All properties files without secret information are 
+included directly in the build. Note that this means changes to those files
 will require re-deploying the application to pick up
 the new values. 
+Properties can be overridden by environment variables as necessary. 
 
 ## Property files
-SPE takes advantage of the Spring *profile* application properties files 
+The file with the name *application.properties* will always be read.
+For additional properties SPE takes advantage of the Spring *profile* 
+application properties files 
 capability. Profiles are property files are named 
 using the convention of *application-{profile_name}.properties*.
-The file with the name *application.properties* will always be read.  
-Additional 
-files with names following that convention 
+ 
+File with names following that convention 
 are optional profile properties files.
-The profiles to be read  can be specified by adding the profile name
+The profiles to be used are specified by adding the profile name
 suffix to the run time 
 argument *--spring.profiles.include={profile_name}*. Multiple profile names can
 be included, separated by commas. The files will be read in the 
 order given.  A property value may be set in multiple files.  The last value
-read will be used. For example the argument *--spring.profiles.include=DBG,OS-DEV* would
+read will be used. For example the argument *--spring.profiles.include=DBG,
+OS-DEV* would
 include the files *application.properties*, *application-DBG.properties* 
-and *application-OS-DEV.properties* and any property value set in the OS-DEV
+and *application-OS-DEV.properties*. Any property value set in the OS-DEV
 profile file would be the value used by SPE.
 
 Properties are split between secure and public properties. Secure files should
@@ -108,7 +110,7 @@ source control. In OpenShift
 the secure properties are kept in project specific Secrets. The secrets volume 
 will need to be mounted as a separate directory:  E.g. */opt/secrets*. 
 
-In production there will typically be three properties files used.
+In production there will typically be at least three properties files used.
 
  * application.properties - This includes values unlikely to change
  between DEV/QA/PROD instances.
@@ -135,25 +137,26 @@ OpenShift.  If you supply the arguments, data volumes, and services required
 by SPE it should run fine in Docker on a laptop or from the command
 line or in an IDE.
 
-The code expects a mail server to be available.  A mail server is available
+The script expects a mail server to be available.  A debug mail server is 
+available
 in the UM OpenShift environment.  When running outside OpenShift a debug 
 mail server can be started with the command:
 
-<code>    python -m smtpd -d -n -c DebuggingServer localhost:1025 & </code>
+<code> python -m smtpd -d -n -c DebuggingServer localhost:1025 & </code>
 
 Verify that the local profile for application-???.properties has the proper
 mail server host and port.
 
-It is possible to configure SPE to independently read / write to files instead
-using the ESB.  This is useful for testing since we have very limited control 
+The IO implementation is configurable so it is possible to configure SPE to 
+read and/or write to files instead of the ESB.
+This is useful for testing since we have very limited control 
 of the systems on the other side of the ESB.  See the properties files for 
 examples.
 
 # Development Scripts
-The *bin* directory contains the script *runDockerSPE.sh*. It will use Docker
-to build and run a local instance of SPE.  See the script to see how this is
-configured by default.  This is only used for local development so the
-documentation is sparse.
+The *bin* directory contains bash scripts to build and run SPE from the command 
+line or using Docker.  Refer to the existing OpenShift projects for OpenShift 
+configuration.  IDE configuration depends on the IDE. 
 
 # Testing
 The application profile properties files can be very helpful for debugging.  
@@ -161,59 +164,24 @@ There are several examples in the config directory.  One interesting one is the
 application-FILEIO.properties file.  It provides examples of how SPE can be 
 configured to read and/or write to files rather than the ESB.  Since there isn't
 an available test API to write grades and we can't write them to production
-this ability is important for testing.
+this ability is critical for testing.
 
 # OpenShift Considerations
 
 ## Properties
 By convention the OpenShift environment often uses environment variables
 to set properties.  If you are tracking down a setting be sure to check 
-the settings in the deployment under consideration.
+the settings in the deployment under consideration. SPE logs the properties that
+it reads so it is possible to know what the final property values are.
 
 ## Logs
 When run outside of OpenShift logs are available as expected in the runtime 
-environment.  When running in OpenShift
-logs are available in the pods created the OpenShift deployment.  The
-log names all start with 'spe' and end with a time stamp. If the pod
-appears in the Applications/Pods list for the project you can get the
-log from the UI. After the pod is terminated old logs should be available 
-using the "View on the Archive" tab.  Logs may also be available via 
+environment. When running in OpenShift logs will be available via 
 the command line via *oc* or in Spunk, or at
-https://kibana.openshift.dsc.umich.edu/
-Logs are only available for 30 days.
-The logging setup is subject to change so YMMV. 
+https://kibana.openshift.dsc.umich.edu/ Logs are only available for 30 days.
+The logging setup is subject to change so YMMV.  Don't depend on mining
+data from old log files.
 
-
-## Creating a new SPE instance
-
-Setup of a new instance should be based on the deployment and build
-configuration of the existing instances.  It is unlikely that a new
-instance will be required.  Updating an existing instance is covered
-below.
-
-The disk volumes for the date persistence and for the OpenShift
-secrets need to be mounted explicitly.  This can be done in deployment
-configuration yaml or in the OpenShift UI.
-
-Each SPE project also contains a plain *bash* pod that mounts the disk 
-used to persist data.  This allows examining and updating the persisted data if 
-necessary.  See *SPECIAL TASKS* below.
-
-## Updating a SPE instance
-
-A SPE application instance might need to be updated for several reasons.
-
-- *schedule*: The repetition frequency of the job may need to change.
-This is done by changing the value of intervalSeconds in the
-application properties file or updating the environment variable.
-- *new image*: If there is a new build the image specification must be
-updated. It shouldn't be "latest" for a production version.  Modifying
-this requires editing the deployment configuration yaml.
-- *application arguments*:  The list of application property files used by 
-the script can
-be modified by changing the container arguments in the deployment
-configuration yaml. The list will be different for different instances.
-See the properties file section above for more details.
 
 # SPECIAL TASKS
 
@@ -224,19 +192,23 @@ contain
 a T.  The time zone of the time stamp can be specified with an offset (or a 
 trailing Z for UTC).  If no time zone is provided the time stamp is assumed to 
 be in UTC.
-Note that the test finished time stamp from Canvas in the database is stored 
-in UTC so if the time needs to be overridden the time stamp 
+Note that the "finished_at" time stamp from Canvas is stored 
+in UTC so if the time needs to be overridden the time stamp must be translated
+to UTC.
 
 In rare circumstances it may be necessary to override the last test time stamp 
-used by SPE.  The simplest approach in OpenShift is to create a new environment 
-variable (**getgrades_gradedaftertime**) in the deployment configuration with 
-the value of the required time stamp. 
-Its value 
-should be a valid time stamp value in the format specified above. After saving
-the environment variable the application will automatically re-deploy and use 
-the that value for the next run. NOTE: 
-As long as that environment variable exists its value will be used by SPE so 
-the same set of tests will be gathered and processed until the value is changed.
-To restart normal 
-operation just delete that environment variable from the OpenShift environment 
-and let the application re-deploy.
+used by SPE.  The simplest approach to this is to 
+edit the *persisted.txt* file on the mounted persistent disk and set it to the
+required time.  This can be done by running a bash application and mounting the 
+persistent disk to it.
+
+
+# Things To Do (TTD)
+- If it is necessary to persist additional information consider storing all the
+information in a hash internally and as a json string externally.  The 
+conversion is easy to do using Jackson.
+- If it is necessary to store a lot of additional information consider using
+SqlLite as a local database.  It doesn't need a database server and can handle 
+lots of data in the familiar SQL format. It won't work for multiple processes.
+- If "scheduling by waiting" isn't sufficient consider using the internal Java 
+scheduling or, better yet, the scheduling provided by Spring.
