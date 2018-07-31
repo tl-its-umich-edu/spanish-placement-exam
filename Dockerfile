@@ -14,7 +14,7 @@ RUN apt-get update \
 WORKDIR /tmp
 
 ## build the esbUtils (not directly available as a jar so build and install locally).
-RUN git clone --branch V2.3-rc1 https://github.com/tl-its-umich-edu/esbUtils \
+RUN git clone --branch v2.3 https://github.com/tl-its-umich-edu/esbUtils \
  && cd esbUtils \
  && pwd \
  && mvn clean install
