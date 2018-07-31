@@ -13,13 +13,13 @@ ENVIRONMENT=" -e TZ=America/New_York "
 
 ######## setup local mappings for Docker container. ##############################
 ########
-HOST_PERSIST=$(pwd)/tmp/persist
+HOST_PERSIST=$(pwd)/PERSIST
 [ -e "${HOST_PERSIST}" ] || { echo "ERROR: [${HOST_PERSIST}] must exist" && exit 1; }
 ##########
 CONTAINER_PERSIST=/opt/spe_persist
 V_PERSIST=" -v ${HOST_PERSIST}:${CONTAINER_PERSIST} "
 ########
-HOST_PUT_GRADE=$(pwd)/tmp/put_grade
+HOST_PUT_GRADE=$(pwd)/PERSIST
 [ -e "${HOST_PUT_GRADE}" ] || { echo "ERROR: [${HOST_PUT_GRADE}] must exist" && exit 1; }
 CONTAINER_PUT_GRADE=/opt/spe/files
 V_PUT_GRADE=" -v ${HOST_PUT_GRADE}:${CONTAINER_PUT_GRADE} "
